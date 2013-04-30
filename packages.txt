@@ -1,1 +1,1 @@
-URI::Escape::XS Config::JSON IO::Async IO::Socket::IP IO::Async::Stream
+URI::Escape::XS Config::JSON IO::Async IO::Socket::IP IO::Async::Stream IO::Async::Timer::Periodic
