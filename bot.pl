@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+# Omegle IRC bot by Matthew Barksdale 
+# Version: 0.1-dev
 
 BEGIN {
     use FindBin qw($Bin);
