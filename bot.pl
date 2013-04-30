@@ -116,7 +116,7 @@ sub irc_parse
     my ($from, $data) = @_;
     my $streamObj = stream_by_id($from);
     return if !$streamObj; # Bail, no match was found (???)
-    say "[$from] << $data";
+    say "[$from] << $data" if $config->get('debug');
 }
 
 # Let's go
