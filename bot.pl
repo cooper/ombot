@@ -10,6 +10,7 @@ BEGIN {
 use strict;
 use warnings;
 use FindBin qw($Bin);
+use feature qw(say switch);
 
 use IO::Async;
 use IO::Async::Loop;
@@ -46,29 +47,58 @@ sub bot_init {
         Timeout   => 10
     );
     # Create streams
-
+    $youStream = IO::Async::Stream->new(
+        handle => $youSocket,
+        on_read => sub {
+            my ($self, $buffref, $eof) = @_;
+            while ($$buffref =~ s/^(.*)\n//)
+            {
+                irc_parse('you', $1);
+            }
+            return 0;
+        },
+    );
+    $omStream = IO::Async::Stream->new(
+        handle => $youSocket,
+        on_read => sub {
+            my ($self, $buffref, $eof) = @_;
+            while ($$buffref =~ s/^(.*)\n//)
+            {
+                irc_parse('om', $1);
+            }
+            return 0;
+        },
+    );
+    # Add to loop
+    $mainLoop->add($youStream);
+    $mainLoop->add($omStream);
     # Send intros
     send_intro();
     # Let's go
     $mainLoop->run;
 }
 
+# Get stream by id
+sub stream_by_id
+{
+    my $id = shift;
+    return $youStream if lc($id) eq 'you';
+    return $omStream if lc($id) eq 'om';
+    return 0; # No match
+}
+
 # Send data to IRC
 sub irc_send
 {
     my ($to, $data) = @_;
-    if (lc $to eq 'you')
-    {
-        $to = $youStream;
-    }
-    else
-    {
-        $to = $omStream;
-    }
+    my $streamObj = stream_by_id($to);
+    return if !$streamObj; # Bail, no match was found (???)
     chomp $data;
-    $to->write($data."\r\n");
+    $streamObj->write($data."\r\n");
+    say "[$to] >> $data" if $config->get('debug');
 }
 
+# Send IRC intro
 sub send_intro
 {
     # Send IRC intros
@@ -78,6 +108,15 @@ sub send_intro
         irc_send($_, "NICK $nicks{$_}");
         irc_send($_, "USER omegle * * :Omegle IRC Bot");
     }
+}
+
+# Parse IRC
+sub irc_parse
+{
+    my ($from, $data) = @_;
+    my $streamObj = stream_by_id($from);
+    return if !$streamObj; # Bail, no match was found (???)
+    say "[$from] << $data";
 }
 
 # Let's go
