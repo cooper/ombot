@@ -116,6 +116,8 @@ sub irc_parse
     my ($from, $data) = @_;
     my $streamObj = stream_by_id($from);
     return if !$streamObj; # Bail, no match was found (???)
+    my @ex = split(' ', $data); # Space split
+    irc_send($from, "PONG $ex[1]") if $ex[0] eq 'PING';
     say "[$from] << $data" if $config->get('debug');
 }
 
