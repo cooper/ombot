@@ -68,14 +68,15 @@ sub bot_init {
         on_got_id => \&om_gotid,
         on_wantcaptcha => \&om_wantcaptcha,
         on_gotcaptcha => \&om_gotcaptcha,
-        on_badcaptcha => \&om_badcaptcha);
+        on_badcaptcha => \&om_badcaptcha,
+        on_commonlikes => \&om_commonlikes
+    );
     # Create Net::Async::HTTP object
     $http = Net::Async::HTTP->new;
     # Add to loop
     $mainLoop->add($om);
     $mainLoop->add($http);
     $om->init();
-    $om = $om->new;
     # Send intros
     send_intro();
     # Let's go
@@ -133,7 +134,7 @@ sub irc_parse
             {
                 if (!$INSESSION)
                 {
-                    om_say("A session is currently not in progress.");
+                    om_say("There is currently no session in progress.");
                     return;
                 }
                 my $send = join ' ', @ex[4..$#ex];
@@ -143,7 +144,7 @@ sub irc_parse
             {
                 if (!$INSESSION)
                 {
-                    om_say("A session is currently not in progress.");
+                    om_say("There is currently no session in progress.");
                     return;
                 }
                 my $send = join ' ', @ex[4..$#ex];
@@ -158,7 +159,7 @@ sub irc_parse
             {
                 if (!$INSESSION)
                 {
-                    om_say("A session is currently not in progress.");
+                    om_say("There is currently no session in progress.");
                     return;
                 }
                 $http->do_request(
@@ -174,14 +175,25 @@ sub irc_parse
                     om_say("A session is already in progress.");
                     return;
                 }
-                $om->start();
-                $INSESSION = 1;
+                if (defined $ex[4])
+                {
+                    my @array;
+                    push(@array, "\"$_\"") foreach @ex[4..$#ex];
+                    my $likes = join ', ', @array;
+                    $INSESSION = $om->new(
+                        topics => "[$likes]",
+                        use_likes => 1,
+                    );
+                } else {
+                    $INSESSION = $om->new();
+                }
+                $INSESSION->start();
             }
             when (/(!|\.)asl/)
             {
                 if (!$INSESSION)
                 {
-                    om_say("No session is in progress.");
+                    om_say("There is currently no session is in progress.");
                     return;
                 }
                 my @ages = (16..25);
@@ -197,14 +209,14 @@ sub irc_parse
             {
                 if (!$INSESSION)
                 {
-                    om_say("No session is in progress.");
+                    om_say("There is currently no session is in progress.");
                     return;
                 }
                 if ($config->get('omegle/quitmessage'))
                 {
                     $om->say($config->get('omegle/quitmessage'));
                 }
-                $om->disconnect();
+                $INSESSION->disconnect();
                 $INSESSION = 0;
                 irc_send('om', "NICK :".$config->get('ombot/nick'));
            }
@@ -225,7 +237,7 @@ sub you_say
 {
     my $data = shift;
     my $chan = $config->get('channel');
-    $om->say($data);
+    $INSESSION->say($data);
     irc_send('you', "PRIVMSG $chan :$data");
 }
 
@@ -264,11 +276,18 @@ sub om_gotcaptcha { shift; om_say("Fill out CAPTCHA here: ".shift); }
 # 'badcaptcha' event
 sub om_badcaptcha { om_say("CAPTCHA incorrect."); }
 
+# 'commonlikes' event
+sub om_commonlikes { 
+    my ($self, @interestArray) = @_;
+    my $common = join ',', $interestArray[0][0];
+    om_say("\001ACTION is interested in ".$common."\001");
+}
+
 # 'type' event
 sub om_type { 
     if ($config->get('ombot/changenicks'))
     {
-        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTION is typing...\001");
+        om_say("\001ACTION is typing...\001");
     }
     else
     {
@@ -280,7 +299,7 @@ sub om_type {
 sub om_stoptype {
     if ($config->get('ombot/changenicks'))
     {
-        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTION stopped typing.\001");
+        om_say("\001ACTION stopped typing.\001");
     }
     else
     {
