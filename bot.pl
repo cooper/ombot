@@ -22,6 +22,7 @@ use Config::JSON;
 
 my ($mainLoop, $configFile, $config);
 my ($youSocket, $youStream, $omSocket, $omStream);
+my $om;
 
 # Config file? Default to bot.conf unless otherwise told
 $configFile = $ARGV[0] || 'bot.conf';
@@ -69,9 +70,20 @@ sub bot_init {
             return 0;
         },
     );
+    # Create Net::Async::Omegle object
+    $om = Net::Async::Omegle->new(
+        on_error => \&om_error,
+        on_chat  => \&om_chat,
+        on_type  => \&om_type,
+        on_stoptype => \&om_stoptype,
+        on_got_id => \&om_gotid,
+        on_wantcaptcha => \&om_wantcaptcha,
+        on_gotcaptcha => \&om_gotcaptcha,
+        on_badcaptcha => \&om_badcaptcha);
     # Add to loop
     $mainLoop->add($youStream);
     $mainLoop->add($omStream);
+    $mainLoop->add($om);
     # Send intros
     send_intro();
     # Let's go
@@ -120,6 +132,23 @@ sub irc_parse
     irc_send($from, "PONG $ex[1]") if $ex[0] eq 'PING';
     say "[$from] << $data" if $config->get('debug');
 }
+
+# Bot say
+sub om_say
+{
+    my $data = shift;
+    my $chan = $config->get('channel');
+    irc_send('om', "PRIVMSG $chan :$data");
+}
+
+# You say
+sub you_say
+{
+    my $data = shift;
+    my $chan = $config->get('channel');
+    irc_send('you', "PRIVMSG $chan :$data");
+}
+
 
 # Let's go
 bot_init();
