@@ -106,6 +106,12 @@ sub say {
     $sess->post('send', [ msg => $msg ]);
 }
 
+sub disconnect {
+    my $sess = shift;
+    return unless $sess->{connected};
+    $sess->post('disconnect');
+}
+
 # $sess->type()
 # make it appear that you are typing.
 sub type {
