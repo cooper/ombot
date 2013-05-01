@@ -22,12 +22,12 @@ use Config::JSON;
 use URI;
 
 my ($mainLoop, $configFile, $config);
-my ($youSocket, $youStream, $omSocket, $omStream);
+my (%sockets, %streams);
 my ($om, $http);
 my $INSESSION = 0;
 
 # Config file? Default to bot.conf unless otherwise told
-$configFile = $ARGV[0] || "$FindBin/../etc/bot.conf";
+$configFile = $ARGV[0] || "$Bin/../etc/bot.conf";
 
 # Let's make a new Config::JSON based on config file
 $config = Config::JSON->new($configFile);
@@ -36,42 +36,27 @@ $config = Config::JSON->new($configFile);
 sub bot_init {
     # Create loop
     $mainLoop = IO::Async::Loop->new;
-    # Create sockets
-    $youSocket = IO::Socket::IP->new(
-        PeerAddr  => $config->get('host'),
-        PeerPort  => $config->get('port'),
-        LocalAddr => $config->get('bind'),
-        Timeout   => 10
-    );
-    $omSocket = IO::Socket::IP->new(
-        PeerAddr  => $config->get('host'),
-        PeerPort  => $config->get('port'),
-        LocalAddr => $config->get('bind'),
-        Timeout   => 10
-    );
-    # Create streams
-    $youStream = IO::Async::Stream->new(
-        handle => $youSocket,
-        on_read => sub {
-            my ($self, $buffref, $eof) = @_;
-            while ($$buffref =~ s/^(.*)\n//)
-            {
-                irc_parse('you', $1);
-            }
-            return 0;
-        },
-    );
-    $omStream = IO::Async::Stream->new(
-        handle => $omSocket,
-        on_read => sub {
-            my ($self, $buffref, $eof) = @_;
-            while ($$buffref =~ s/^(.*)\n//)
-            {
-                irc_parse('om', $1);
-            }
-            return 0;
-        },
-    );
+    foreach my $sockName (qw/om you/)
+    {
+        $sockets{$sockName} = IO::Socket::IP->new(
+            PeerAddr  => $config->get('host'),
+            PeerPort  => $config->get('port'),
+            LocalAddr => $config->get('bind'),
+            Timeout   => 10
+        );
+        $streams{$sockName} = IO::Async::Stream->new(
+            handle => $sockets{$sockName},
+            on_read => sub {
+                my ($self, $buffref, $eof) = @_;
+                while ($$buffref =~ s/^(.*)\n//)
+                {
+                    irc_parse($sockName, $1);
+                }
+                return 0;
+            },
+        );
+        $mainLoop->add($streams{$sockName});
+    }
     # Create Net::Async::Omegle object
     $om = Net::Async::Omegle->new(
         on_error => \&om_error,
@@ -87,8 +72,6 @@ sub bot_init {
     # Create Net::Async::HTTP object
     $http = Net::Async::HTTP->new;
     # Add to loop
-    $mainLoop->add($youStream);
-    $mainLoop->add($omStream);
     $mainLoop->add($om);
     $mainLoop->add($http);
     $om->init();
@@ -103,8 +86,7 @@ sub bot_init {
 sub stream_by_id
 {
     my $id = shift;
-    return $youStream if lc($id) eq 'you';
-    return $omStream if lc($id) eq 'om';
+    return $streams{$id} if defined $streams{$id};
     return 0; # No match
 }
 
