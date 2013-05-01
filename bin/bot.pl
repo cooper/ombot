@@ -128,6 +128,7 @@ sub irc_parse
     {
         my $confNick = ($config->get('ombot/changenicks') ? $config->get('ombot/sessionnick') : $config->get('ombot/nick'));
         $ex[3] = substr $ex[3], 1;
+        my $params = join ' ', @ex[4..$#ex];
         given (lc($ex[3]))
         {
             when (/(!|\.)(say|send)/)
@@ -137,8 +138,7 @@ sub irc_parse
                     om_say("There is currently no session in progress.");
                     return;
                 }
-                my $send = join ' ', @ex[4..$#ex];
-                you_say($send);
+                you_say($params);
             }
             when (/($confNick)(:|,| )/i)
             {
@@ -147,13 +147,11 @@ sub irc_parse
                     om_say("There is currently no session in progress.");
                     return;
                 }
-                my $send = join ' ', @ex[4..$#ex];
-                you_say($send);
+                you_say($params);
             }
             when (/(!|\.)(captcha|submit)/)
             {
-                my $send = join ' ', @ex[4..$#ex];
-                $om->submit_captcha($send);
+                $om->submit_captcha($params);
             }
             when (/(!|\.)troll/)
             {
