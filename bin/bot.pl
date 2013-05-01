@@ -4,12 +4,11 @@
 
 BEGIN {
     use FindBin qw($Bin);
-    unshift(@INC, "$Bin/lib");
+    unshift(@INC, "$Bin/../lib");
 }
 
 use strict;
 use warnings;
-use FindBin qw($Bin);
 use feature qw(say switch);
 
 use IO::Async;
@@ -28,7 +27,7 @@ my ($om, $http);
 my $INSESSION = 0;
 
 # Config file? Default to bot.conf unless otherwise told
-$configFile = $ARGV[0] || 'bot.conf';
+$configFile = $ARGV[0] || "$FindBin/../etc/bot.conf";
 
 # Let's make a new Config::JSON based on config file
 $config = Config::JSON->new($configFile);
@@ -158,7 +157,7 @@ sub irc_parse
                 my $send = join ' ', @ex[4..$#ex];
                 you_say($send);
             }
-            when (/($confNick)(:|,| )/)
+            when (/($confNick)(:|,| )/i)
             {
                 if (!$INSESSION)
                 {
