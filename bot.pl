@@ -60,7 +60,7 @@ sub bot_init {
         },
     );
     $omStream = IO::Async::Stream->new(
-        handle => $youSocket,
+        handle => $omSocket,
         on_read => sub {
             my ($self, $buffref, $eof) = @_;
             while ($$buffref =~ s/^(.*)\n//)
@@ -130,6 +130,7 @@ sub irc_parse
     return if !$streamObj; # Bail, no match was found (???)
     my @ex = split(' ', $data); # Space split
     irc_send($from, "PONG $ex[1]") if $ex[0] eq 'PING';
+    irc_send($from, "JOIN ".$config->get('channel')) if $ex[1] eq '001';
     say "[$from] << $data" if $config->get('debug');
 }
 
