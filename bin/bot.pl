@@ -15,6 +15,7 @@ use IO::Async;
 use IO::Async::Loop;
 use IO::Async::Stream;
 use IO::Socket::IP;
+use IO::Async::Timer::Countdown;
 
 use Net::Async::Omegle;
 use Net::Async::HTTP;
@@ -25,6 +26,7 @@ my ($mainLoop, $configFile, $config);
 my (%sockets, %streams);
 my ($om, $http);
 my $INSESSION = 0;
+my $COOLDOWN = 0;
 
 # Config file? Default to bot.conf unless otherwise told
 $configFile = $ARGV[0] || "$Bin/../etc/bot.conf";
@@ -161,6 +163,11 @@ sub irc_parse
                     om_say("A session is already in progress.");
                     return;
                 }
+                if ($COOLDOWN)
+                {
+                    om_say("Please wait a few seconds before starting a new session.");
+                    return;
+                }
                 my %args = (
                     on_error => \&om_error,
                     on_connect => \&om_connect,
@@ -210,11 +217,15 @@ sub irc_parse
                 }
                 if ($config->get('omegle/quitmessage'))
                 {
-                    $om->say($config->get('omegle/quitmessage'));
+                    $INSESSION->say($config->get('omegle/quitmessage'));
                 }
                 $INSESSION->disconnect();
                 $INSESSION = 0;
                 irc_send('om', "NICK :".$config->get('ombot/nick'));
+                $COOLDOWN = 1;
+                my $timer = IO::Async::Timer::Countdown->new(delay => 10, on_expire => sub { $COOLDOWN = 0; });
+                $mainLoop->add($timer);
+                $timer->start;
            }
         }
     }
