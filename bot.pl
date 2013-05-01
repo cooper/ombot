@@ -154,11 +154,12 @@ sub you_say
 
 # 'got_id' event
 sub om_gotid { om_say("Omegle started with ID ".shift); }
+
 # 'connect' event
 sub om_connect
 {
    om_say("Stranger connected.");
-   if ($config->get('changenicks'))
+   if ($config->get('ombot/changenicks'))
    {
        irc_send('om', "NICK ".$config->get('ombot/sessionnick'));
    }
@@ -167,12 +168,60 @@ sub om_connect
 sub om_disconnect
 {
    om_say("Stranger disconnected.");
-   if ($config->get('changenicks'))
+   if ($config->get('ombot/changenicks'))
    {
        irc_send('om', "NICK ".$config->get('ombot/nick'));
    }
 }
 
+# 'error' event
+sub om_error { om_say("Omegle sent an error ".shift); }
+
+# 'wantcaptcha' event
+sub om_wantcaptcha { om_say("Omegle wants CAPTCHA"); }
+
+# 'gotcaptcha' event
+sub om_gotcaptcha { om_say("Fill out CAPTCHA here: ".shift); }
+
+# 'badcaptcha' event
+sub om_badcaptcha { om_say("CAPTCHA incorrect."); }
+
+# 'type' event
+sub om_type { 
+    if ($config->get('ombot/changenicks'))
+    {
+        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTIONis typing...\001");
+    }
+    else
+    {
+        om_say("Stranger is typing...");
+    }
+}
+
+# 'stoptype' event
+sub om_stoptype {
+    if ($config->get('ombot/changenicks'))
+    {
+        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTIONstopped typing.\001");
+    }
+    else
+    {
+        om_say("Stranger stopped typing.");
+    }
+}
+
+# 'chat' event
+sub om_chat {
+    my $message = shift;
+    if ($config->get('ombot/changenicks'))
+    {
+        om_say($message);
+    }
+    else
+    {
+        om_say("Stranger: $message");
+    }
+}
 
 # Let's go
 bot_init();
