@@ -144,10 +144,21 @@ sub irc_parse
     say "[$from] << $data" if $config->get('debug');
     if ($ex[1] eq 'PRIVMSG' and $from eq 'om')
     {
+        my $confNick = ($config->get('ombot/changenicks') ? $config->get('ombot/sessionnick') : $config->get('ombot/nick'));
         $ex[3] = substr $ex[3], 1;
         given (lc($ex[3]))
         {
             when (/(!|\.)(say|send)/)
+            {
+                if (!$INSESSION)
+                {
+                    om_say("A session is currently not in progress.");
+                    return;
+                }
+                my $send = join ' ', @ex[4..$#ex];
+                you_say($send);
+            }
+            when (/($confNick)(:|,| )/)
             {
                 if (!$INSESSION)
                 {
