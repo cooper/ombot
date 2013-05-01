@@ -110,6 +110,7 @@ sub disconnect {
     my $sess = shift;
     return unless $sess->{connected};
     $sess->post('disconnect');
+    $sess->done();
 }
 
 # $sess->type()

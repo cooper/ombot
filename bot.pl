@@ -23,6 +23,7 @@ use Config::JSON;
 my ($mainLoop, $configFile, $config);
 my ($youSocket, $youStream, $omSocket, $omStream);
 my $om;
+my $INSESSION = 0;
 
 # Config file? Default to bot.conf unless otherwise told
 $configFile = $ARGV[0] || 'bot.conf';
@@ -86,6 +87,8 @@ sub bot_init {
     $mainLoop->add($youStream);
     $mainLoop->add($omStream);
     $mainLoop->add($om);
+    $om->init();
+    $om = $om->new;
     # Send intros
     send_intro();
     # Let's go
@@ -134,6 +137,49 @@ sub irc_parse
     irc_send($from, "PONG $ex[1]") if $ex[0] eq 'PING';
     irc_send($from, "JOIN ".$config->get('channel')) if $ex[1] eq '001';
     say "[$from] << $data" if $config->get('debug');
+    if ($ex[1] eq 'PRIVMSG' and $from eq 'om')
+    {
+        $ex[3] = substr $ex[3], 1;
+        given (lc($ex[3]))
+        {
+            when (/(!|\.)(say|send)/)
+            {
+                if (!$INSESSION)
+                {
+                    om_say("A session is currently not in progress.");
+                    return;
+                }
+                my $send = join ' ', @ex[4..$#ex];
+                you_say($send);
+            }
+            when (/(!|\.)(captcha|submit)/)
+            {
+                my $send = join ' ', @ex[4..$#ex];
+                $om->submit_captcha($send);
+            }
+            when (/(!|\.)(start|begin)/)
+            {
+                if ($INSESSION)
+                {
+                    om_say("A session is already in progress.");
+                    return;
+                }
+                $om->start();
+                $INSESSION = 1;
+            }
+            when (/(!|\.)(stop|end)/)
+            {
+                if (!$INSESSION)
+                {
+                    om_say("No session is in progress.");
+                    return;
+                }
+                $om->disconnect();
+                $INSESSION = 0;
+                irc_send('om', "NICK :".$config->get('ombot/nick'));
+           }
+        }
+    }
 }
 
 # Bot say
@@ -149,11 +195,12 @@ sub you_say
 {
     my $data = shift;
     my $chan = $config->get('channel');
+    $om->say($data);
     irc_send('you', "PRIVMSG $chan :$data");
 }
 
 # 'got_id' event
-sub om_gotid { om_say("Omegle started with ID ".shift); }
+sub om_gotid { shift; om_say("Omegle started with ID ".shift); }
 
 # 'connect' event
 sub om_connect
@@ -175,13 +222,13 @@ sub om_disconnect
 }
 
 # 'error' event
-sub om_error { om_say("Omegle sent an error ".shift); }
+sub om_error { shift; om_say("Omegle sent an error ".shift); }
 
 # 'wantcaptcha' event
 sub om_wantcaptcha { om_say("Omegle wants CAPTCHA"); }
 
 # 'gotcaptcha' event
-sub om_gotcaptcha { om_say("Fill out CAPTCHA here: ".shift); }
+sub om_gotcaptcha { shift; om_say("Fill out CAPTCHA here: ".shift); }
 
 # 'badcaptcha' event
 sub om_badcaptcha { om_say("CAPTCHA incorrect."); }
@@ -190,7 +237,7 @@ sub om_badcaptcha { om_say("CAPTCHA incorrect."); }
 sub om_type { 
     if ($config->get('ombot/changenicks'))
     {
-        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTIONis typing...\001");
+        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTION is typing...\001");
     }
     else
     {
@@ -202,7 +249,7 @@ sub om_type {
 sub om_stoptype {
     if ($config->get('ombot/changenicks'))
     {
-        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTIONstopped typing.\001");
+        irc_send('om', "PRIVMSG ".$config->get('channel')." :\001ACTION stopped typing.\001");
     }
     else
     {
@@ -212,7 +259,7 @@ sub om_stoptype {
 
 # 'chat' event
 sub om_chat {
-    my $message = shift;
+    my ($self, $message) = @_;
     if ($config->get('ombot/changenicks'))
     {
         om_say($message);
