@@ -268,6 +268,7 @@ sub om_disconnect
    {
        irc_send('om', "NICK ".$config->get('ombot/nick'));
    }
+   $INSESSION = 0;
 }
 
 # 'error' event
