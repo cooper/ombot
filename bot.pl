@@ -18,11 +18,13 @@ use IO::Async::Stream;
 use IO::Socket::IP;
 
 use Net::Async::Omegle;
+use Net::Async::HTTP;
 use Config::JSON;
+use URI;
 
 my ($mainLoop, $configFile, $config);
 my ($youSocket, $youStream, $omSocket, $omStream);
-my $om;
+my ($om, $http);
 my $INSESSION = 0;
 
 # Config file? Default to bot.conf unless otherwise told
@@ -83,10 +85,13 @@ sub bot_init {
         on_wantcaptcha => \&om_wantcaptcha,
         on_gotcaptcha => \&om_gotcaptcha,
         on_badcaptcha => \&om_badcaptcha);
+    # Create Net::Async::HTTP object
+    $http = Net::Async::HTTP->new;
     # Add to loop
     $mainLoop->add($youStream);
     $mainLoop->add($omStream);
     $mainLoop->add($om);
+    $mainLoop->add($http);
     $om->init();
     $om = $om->new;
     # Send intros
@@ -157,6 +162,19 @@ sub irc_parse
                 my $send = join ' ', @ex[4..$#ex];
                 $om->submit_captcha($send);
             }
+            when (/(!|\.)troll/)
+            {
+                if (!$INSESSION)
+                {
+                    om_say("A session is currently not in progress.");
+                    return;
+                }
+                $http->do_request(
+                    uri => URI->new($config->get('omegle/trollsrc')),
+                    on_response => sub { you_say(shift->decoded_content); },
+                    on_error => sub { om_say("Error getting troll: ".shift); }
+                );
+            }
             when (/(!|\.)(start|begin)/)
             {
                 if ($INSESSION)
@@ -174,9 +192,9 @@ sub irc_parse
                     om_say("No session is in progress.");
                     return;
                 }
-                if ($config->get('quitmessage'))
+                if ($config->get('omegle/quitmessage'))
                 {
-                    $om->say($config->get('quitmessage'));
+                    $om->say($config->get('omegle/quitmessage'));
                 }
                 $om->disconnect();
                 $INSESSION = 0;
