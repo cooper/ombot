@@ -58,19 +58,7 @@ sub bot_init {
         $mainLoop->add($streams{$sockName});
     }
     # Create Net::Async::Omegle object
-    $om = Net::Async::Omegle->new(
-        on_error => \&om_error,
-        on_connect => \&om_connect,
-        on_disconnect => \&om_disconnect,
-        on_chat  => \&om_chat,
-        on_type  => \&om_type,
-        on_stoptype => \&om_stoptype,
-        on_got_id => \&om_gotid,
-        on_wantcaptcha => \&om_wantcaptcha,
-        on_gotcaptcha => \&om_gotcaptcha,
-        on_badcaptcha => \&om_badcaptcha,
-        on_commonlikes => \&om_commonlikes
-    );
+    $om = Net::Async::Omegle->new();
     # Create Net::Async::HTTP object
     $http = Net::Async::HTTP->new;
     # Add to loop
@@ -173,18 +161,28 @@ sub irc_parse
                     om_say("A session is already in progress.");
                     return;
                 }
+                my %args = (
+                    on_error => \&om_error,
+                    on_connect => \&om_connect,
+                    on_disconnect => \&om_disconnect,
+                    on_chat  => \&om_chat,
+                    on_type  => \&om_type,
+                    on_stoptype => \&om_stoptype,
+                    on_got_id => \&om_gotid,
+                    on_wantcaptcha => \&om_wantcaptcha,
+                    on_gotcaptcha => \&om_gotcaptcha,
+                    on_badcaptcha => \&om_badcaptcha,
+                    on_commonlikes => \&om_commonlikes
+                );
                 if (defined $ex[4])
                 {
                     my @array;
                     push(@array, "\"$_\"") foreach @ex[4..$#ex];
                     my $likes = join ', ', @array;
-                    $INSESSION = $om->new(
-                        topics => "[$likes]",
-                        use_likes => 1,
-                    );
-                } else {
-                    $INSESSION = $om->new();
+                    $args{topics} = "[$likes]";
+                    $args{use_likes} = 1;
                 }
+                $INSESSION = $om->new(%args);
                 $INSESSION->start();
             }
             when (/(!|\.)asl/)
@@ -308,6 +306,7 @@ sub om_stoptype {
 # 'chat' event
 sub om_chat {
     my ($self, $message) = @_;
+    chomp $message;
     if ($config->get('ombot/changenicks'))
     {
         om_say($message);
