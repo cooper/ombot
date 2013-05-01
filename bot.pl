@@ -174,6 +174,10 @@ sub irc_parse
                     om_say("No session is in progress.");
                     return;
                 }
+                if ($config->get('quitmessage'))
+                {
+                    $om->say($config->get('quitmessage'));
+                }
                 $om->disconnect();
                 $INSESSION = 0;
                 irc_send('om', "NICK :".$config->get('ombot/nick'));
