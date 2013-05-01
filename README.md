@@ -13,7 +13,7 @@ Omegle IRC Bot in Perl
 
 ## Commands
 ### All commands can be executed either by using ! or . as a prefix
-+ start / begin [<common intersts (space separated)>] - starts a new session
++ start / begin [\<common intersts (space separated)\>] - starts a new session
 + stop / end - ends current session
 + captcha / submit \<response\> - sends captcha response to omegle
 + send / say \<message\> - sends message to omegle stranger
