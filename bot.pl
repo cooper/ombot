@@ -73,6 +73,8 @@ sub bot_init {
     # Create Net::Async::Omegle object
     $om = Net::Async::Omegle->new(
         on_error => \&om_error,
+        on_connect => \&om_connect,
+        on_disconnect => \&om_disconnect,
         on_chat  => \&om_chat,
         on_type  => \&om_type,
         on_stoptype => \&om_stoptype,
@@ -148,6 +150,27 @@ sub you_say
     my $data = shift;
     my $chan = $config->get('channel');
     irc_send('you', "PRIVMSG $chan :$data");
+}
+
+# 'got_id' event
+sub om_gotid { om_say("Omegle started with ID ".shift); }
+# 'connect' event
+sub om_connect
+{
+   om_say("Stranger connected.");
+   if ($config->get('changenicks'))
+   {
+       irc_send('om', "NICK ".$config->get('ombot/sessionnick'));
+   }
+}
+# 'disconnect' event
+sub om_disconnect
+{
+   om_say("Stranger disconnected.");
+   if ($config->get('changenicks'))
+   {
+       irc_send('om', "NICK ".$config->get('ombot/nick'));
+   }
 }
 
 
