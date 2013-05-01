@@ -3,9 +3,8 @@ ombot
 
 Omegle IRC Bot in Perl
 
-# Commands
-## All commands can be executed either by using ! or . as a prefix
-
+## Commands
+### All commands can be executed either by using ! or . as a prefix
 + start / begin - starts a new session
 + stop / end - ends current session
 + captcha / submit <response> - sends captcha response to omegle
