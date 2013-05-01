@@ -196,7 +196,7 @@ sub irc_parse
                     om_say("There is currently no session is in progress.");
                     return;
                 }
-                my @ages = (16..25);
+                my @ages = ($config->get('omegle/asl/low')..$config->get('omegle/asl/high'));
                 my @sexes = ('m', 'f');
                 my @location = ('USA', 'AU', 'Canada', 'Netherlands', 'New Zealand', 'Germany', 'United Kingdom', 'France', 'New Jersey', 'California', 'Utah', 'New York', 'Florida', 'Virginia');
                 my $a = $ages[int rand scalar @ages];
