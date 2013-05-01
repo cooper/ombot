@@ -196,6 +196,22 @@ sub irc_parse
                 $om->start();
                 $INSESSION = 1;
             }
+            when (/(!|\.)asl/)
+            {
+                if (!$INSESSION)
+                {
+                    om_say("No session is in progress.");
+                    return;
+                }
+                my @ages = (16..25);
+                my @sexes = ('m', 'f');
+                my @location = ('USA', 'AU', 'Canada', 'Netherlands', 'New Zealand', 'Germany', 'United Kingdom', 'France', 'New Jersey', 'California', 'Utah', 'New York', 'Florida', 'Virginia');
+                my $a = $ages[int rand scalar @ages];
+                my $s = $sexes[int rand scalar @sexes];
+                my $l = $location[int rand scalar @location];
+                if (defined $ex[4]) { $s = $ex[4]; }
+                you_say("$a / $s / $l");
+            }
             when (/(!|\.)(stop|end)/)
             {
                 if (!$INSESSION)
