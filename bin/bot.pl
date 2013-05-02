@@ -249,7 +249,11 @@ sub you_say
 }
 
 # 'got_id' event
-sub om_gotid { shift; om_say("Omegle started with ID ".shift); }
+sub om_gotid {
+    my ($self, $sessionID) = @_;
+    my $server = $INSESSION->{server};
+    om_say("Omegle conversation started on $server with ID $sessionID");
+}
 
 # 'connect' event
 sub om_connect
