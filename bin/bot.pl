@@ -287,7 +287,14 @@ sub om_badcaptcha { om_say("CAPTCHA incorrect."); }
 sub om_commonlikes { 
     my ($self, @interestArray) = @_;
     my $common = join ',', $interestArray[0][0];
-    om_say("\001ACTION is interested in ".$common."\001");
+    if ($config->get('ombot/changenicks'))
+    {
+        om_say("\001ACTION is interested in $common\001");
+    }
+    else
+    {
+        om_say("Stranger is interested in $common\001");
+    }
 }
 
 # 'type' event
