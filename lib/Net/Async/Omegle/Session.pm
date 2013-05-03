@@ -49,7 +49,6 @@ sub start {
 
     # enable common interests.
     if ($sess->opt('use_likes')) {
-        my $topics = encodeURIComponent($sess->opt('topics'));
         $startopts   .= '&topics='.encodeURIComponent($sess->opt('topics'));
         $sess->{type} = $SESS{COMMON};
         $sess->{stopsearching} = time() + 5;
@@ -289,7 +288,6 @@ sub handle_events {
 
     # event JSON
     my $events = JSON::decode_json($data);
-    $sess->fire(debug => "Got $data");
     $sess->handle_event(@$_) foreach @$events;
 
     # request more events.
