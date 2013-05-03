@@ -15,7 +15,6 @@ use IO::Async;
 use IO::Async::Loop;
 use IO::Async::Stream;
 use IO::Socket::IP;
-use IO::Async::Timer::Countdown;
 
 use Net::Async::Omegle;
 use Net::Async::HTTP;
@@ -25,8 +24,7 @@ use URI;
 my ($mainLoop, $configFile, $config);
 my (%sockets, %streams);
 my ($om, $http);
-my $INSESSION = 0;
-my $COOLDOWN = 0;
+my $sess = undef;
 
 # Config file? Default to bot.conf unless otherwise told
 $configFile = $ARGV[0] || "$Bin/../etc/bot.conf";
@@ -67,6 +65,20 @@ sub bot_init {
     $mainLoop->add($om);
     $mainLoop->add($http);
     $om->init();
+    # Initialize a session
+    $sess = $om->new(
+        on_error => \&om_error,
+        on_connect => \&om_connect,
+        on_disconnect => \&om_disconnect,
+        on_chat  => \&om_chat,
+        on_type  => \&om_type,
+        on_stoptype => \&om_stoptype,
+        on_got_id => \&om_gotid,
+        on_wantcaptcha => \&om_wantcaptcha,
+        on_gotcaptcha => \&om_gotcaptcha,
+        on_badcaptcha => \&om_badcaptcha,
+        on_commonlikes => \&om_commonlikes
+    );
     # Send intros
     send_intro();
     # Let's go
@@ -122,7 +134,7 @@ sub irc_parse
         {
             when (/($confNick)(:|,| )/i)
             {
-                if (!$INSESSION)
+                if (!$sess->{omegle_id})
                 {
                     om_say("There is currently no session in progress.");
                     return;
@@ -131,43 +143,25 @@ sub irc_parse
             }
             when (/(!|\.)(start|begin)/)
             {
-                if ($INSESSION)
+
+                if ($sess->{omegle_id})
                 {
                     om_say("A session is already in progress.");
                     return;
                 }
-                if ($COOLDOWN)
-                {
-                    om_say("Please wait a few seconds before starting a new session.");
-                    return;
-                }
-                my %args = (
-                    on_error => \&om_error,
-                    on_connect => \&om_connect,
-                    on_disconnect => \&om_disconnect,
-                    on_chat  => \&om_chat,
-                    on_type  => \&om_type,
-                    on_stoptype => \&om_stoptype,
-                    on_got_id => \&om_gotid,
-                    on_wantcaptcha => \&om_wantcaptcha,
-                    on_gotcaptcha => \&om_gotcaptcha,
-                    on_badcaptcha => \&om_badcaptcha,
-                    on_commonlikes => \&om_commonlikes
-                );
                 if (defined $ex[4])
                 {
                     my @array;
                     push(@array, "\"$_\"") foreach @ex[4..$#ex];
                     my $likes = join ', ', @array;
-                    $args{topics} = "[$likes]";
-                    $args{use_likes} = 1;
-                }
-                $INSESSION = $om->new(%args);
-                $INSESSION->start();
+                    $sess->{topics} = "[$likes]";
+                    $sess->{use_likes} = 1;
+                } else { $sess->{use_likes} = 0; }
+                $sess->start();
             }
             when (/(!|\.)asl/)
             {
-                if (!$INSESSION)
+                if (!$sess->{omegle_id})
                 {
                     om_say("There is currently no session is in progress.");
                     return;
@@ -183,22 +177,17 @@ sub irc_parse
             }
             when (/(!|\.)(stop|end)/)
             {
-                if (!$INSESSION)
+                if (!$sess->{omegle_id})
                 {
                     om_say("There is currently no session is in progress.");
                     return;
                 }
                 if ($config->get('omegle/quitmessage'))
                 {
-                    $INSESSION->say($config->get('omegle/quitmessage'));
+                    $sess->say($config->get('omegle/quitmessage'));
                 }
-                $INSESSION->disconnect();
-                $INSESSION = 0;
+                $sess->disconnect();
                 irc_send('om', "NICK :".$config->get('ombot/nick'));
-                $COOLDOWN = 1;
-                my $timer = IO::Async::Timer::Countdown->new(delay => 10, on_expire => sub { $COOLDOWN = 0; });
-                $mainLoop->add($timer);
-                $timer->start;
            }
 
             default
@@ -223,21 +212,21 @@ sub command_dispatch
          # Captcha submit command
          when (/(CAPTCHA|SUBMIT)/)
          {
-             om_say("Error: No session.") and return if !$INSESSION;
+             om_say("Error: No session.") and return if !$sess->{omegle_id};
              om_say("Error: Invalid syntax. \2Syntax:\2 $1 <response text>") and return if !$args[0];
-             $INSESSION->submit_captcha($args[0]);
+             $sess->submit_captcha($args[0]);
          }
          # Send command
          when (/(SAY|SEND)/)
          {
-             om_say("Error: No session.") and return if !$INSESSION;
+             om_say("Error: No session.") and return if !$sess->{omegle_id};
              om_say("Error: Invalid syntax. \2Syntax:\2 $1 <text to send>") and return if !$args[0];
              you_say(join ' ', @args);
          } 
          # Troll command
          when (/(TROLL)/)
          {
-             om_say("Error: No session.") and return if !$INSESSION;
+             om_say("Error: No session.") and return if !$sess->{omegle_id};
              $http->do_request(
                 uri => URI->new($config->get('omegle/trollsrc')),
                 on_response => sub { you_say(shift->decoded_content); },
@@ -260,14 +249,14 @@ sub you_say
 {
     my $data = shift;
     my $chan = $config->get('channel');
-    $INSESSION->say($data);
+    $sess->say($data);
     irc_send('you', "PRIVMSG $chan :$data");
 }
 
 # 'got_id' event
 sub om_gotid {
     my ($self, $sessionID) = @_;
-    my $server = $INSESSION->{server};
+    my $server = $sess->{server};
     om_say("Omegle conversation started on $server with ID $sessionID");
 }
 
@@ -283,7 +272,6 @@ sub om_disconnect
 {
    om_say("Stranger disconnected.");
    irc_send('om', "NICK ".$config->get('ombot/nick')) if $config->get('ombot/changenicks');
-   $INSESSION = 0;
 }
 
 # 'error' event
