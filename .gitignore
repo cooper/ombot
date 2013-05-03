@@ -1,2 +1,5 @@
 nytprof.out
 etc/bot.conf
+*~
+*.old
+*.save

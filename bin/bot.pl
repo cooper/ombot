@@ -2,20 +2,27 @@
 # Omegle IRC bot by Matthew Barksdale 
 # Version: 0.1-dev
 
-BEGIN {
-    use FindBin qw($Bin);
-    unshift(@INC, "$Bin/../lib");
-}
-
 use strict;
 use warnings;
 use feature qw(say switch);
+
+BEGIN {
+    use FindBin qw($Bin);
+    unshift(@INC,
+        "$Bin/../lib",
+        "$Bin/../lib/evented-object",
+        "$Bin/../lib/evented-configuration",
+        "$Bin/../lib/net-async-omegle"
+    );
+}
 
 use IO::Async;
 use IO::Async::Loop;
 use IO::Async::Stream;
 use IO::Socket::IP;
 
+use EventedObject;
+use Evented::Configuration;
 use Net::Async::Omegle;
 use Net::Async::HTTP;
 use Config::JSON;
