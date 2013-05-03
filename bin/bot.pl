@@ -95,11 +95,9 @@ sub irc_send
 # Send IRC intro
 sub send_intro
 {
-    # Send IRC intros
-    my %nicks = ('you' => $config->get('you/nick'), 'om' => $config->get('ombot/nick'));
     foreach (qw/om you/)
     {
-        irc_send($_, "NICK $nicks{$_}");
+        irc_send($_, "NICK ".$config->get($_."/nick"));
         irc_send($_, "USER omegle * * :Omegle IRC Bot");
     }
 }
@@ -121,15 +119,6 @@ sub irc_parse
         my $params = join ' ', @ex[4..$#ex];
         given (lc($ex[3]))
         {
-            when (/(!|\.)(say|send)/)
-            {
-                if (!$INSESSION)
-                {
-                    om_say("There is currently no session in progress.");
-                    return;
-                }
-                you_say($params);
-            }
             when (/($confNick)(:|,| )/i)
             {
                 if (!$INSESSION)
@@ -138,23 +127,6 @@ sub irc_parse
                     return;
                 }
                 you_say($params);
-            }
-            when (/(!|\.)(captcha|submit)/)
-            {
-                $om->submit_captcha($params);
-            }
-            when (/(!|\.)troll/)
-            {
-                if (!$INSESSION)
-                {
-                    om_say("There is currently no session in progress.");
-                    return;
-                }
-                $http->do_request(
-                    uri => URI->new($config->get('omegle/trollsrc')),
-                    on_response => sub { you_say(shift->decoded_content); },
-                    on_error => sub { om_say("Error getting troll: ".shift); }
-                );
             }
             when (/(!|\.)(start|begin)/)
             {
@@ -227,7 +199,50 @@ sub irc_parse
                 $mainLoop->add($timer);
                 $timer->start;
            }
+
+            default
+            {
+                my $prefixes = "!|\.|~";
+                if ($ex[3] =~ m/($prefixes)(.*)/i)
+                {
+                    command_dispatch(uc($2), @ex[4..$#ex]);
+                }
+            }
+
         }
+    }
+}
+
+# Command dispatcher
+sub command_dispatch
+{
+    my ($command, @args) = @_;
+    given ($command)
+    {
+         # Captcha submit command
+         when (/(CAPTCHA|SUBMIT)/)
+         {
+             om_say("Error: No session.") and return if !$INSESSION;
+             om_say("Error: Invalid syntax. \2Syntax:\2 $1 <response text>") and return if !$args[0];
+             $INSESSION->submit_captcha($args[0]);
+         }
+         # Send command
+         when (/(SAY|SEND)/)
+         {
+             om_say("Error: No session.") and return if !$INSESSION;
+             om_say("Error: Invalid syntax. \2Syntax:\2 $1 <text to send>") and return if !$args[0];
+             you_say(join ' ', @args);
+         } 
+         # Troll command
+         when (/(TROLL)/)
+         {
+             om_say("Error: No session.") and return if !$INSESSION;
+             $http->do_request(
+                uri => URI->new($config->get('omegle/trollsrc')),
+                on_response => sub { you_say(shift->decoded_content); },
+                on_error => sub { om_say("Error getting troll: ".shift); }
+             );
+         }
     }
 }
 
@@ -259,19 +274,14 @@ sub om_gotid {
 sub om_connect
 {
    om_say("Stranger connected.");
-   if ($config->get('ombot/changenicks'))
-   {
-       irc_send('om', "NICK ".$config->get('ombot/sessionnick'));
-   }
+   irc_send('om', "NICK ".$config->get('ombot/sessionnick')) if $config->get('ombot/changenicks');;
 }
+
 # 'disconnect' event
 sub om_disconnect
 {
    om_say("Stranger disconnected.");
-   if ($config->get('ombot/changenicks'))
-   {
-       irc_send('om', "NICK ".$config->get('ombot/nick'));
-   }
+   irc_send('om', "NICK ".$config->get('ombot/nick')) if $config->get('ombot/changenicks');
    $INSESSION = 0;
 }
 
@@ -291,52 +301,28 @@ sub om_badcaptcha { om_say("CAPTCHA incorrect."); }
 sub om_commonlikes { 
     my ($self, @interestArray) = @_;
     my $common = join ',', $interestArray[0][0];
-    if ($config->get('ombot/changenicks'))
-    {
-        om_say("\001ACTION is interested in $common\001");
-    }
-    else
-    {
-        om_say("Stranger is interested in $common\001");
-    }
+    my $message = ($config->get('ombot/changenicks') ? "\001ACTION is interested in $common\001" : "Stranger is interested in $common");
+    om_say($message);
 }
 
 # 'type' event
-sub om_type { 
-    if ($config->get('ombot/changenicks'))
-    {
-        om_say("\001ACTION is typing...\001");
-    }
-    else
-    {
-        om_say("Stranger is typing...");
-    }
+sub om_type {
+    my $message = ($config->get('ombot/changenicks') ? "\001ACTION is typing...\001" : "Stranger is typing...");
+    om_say($message);
 }
 
 # 'stoptype' event
 sub om_stoptype {
-    if ($config->get('ombot/changenicks'))
-    {
-        om_say("\001ACTION stopped typing.\001");
-    }
-    else
-    {
-        om_say("Stranger stopped typing.");
-    }
+    my $message = ($config->get('ombot/changenicks') ? "\001ACTION stopped typing.\001" : "Stranger stopped typing.");
+    om_say($message);
 }
 
 # 'chat' event
 sub om_chat {
-    my ($self, $message) = @_;
-    chomp $message;
-    if ($config->get('ombot/changenicks'))
-    {
-        om_say($message);
-    }
-    else
-    {
-        om_say("Stranger: $message");
-    }
+    my ($self, $text) = @_;
+    chomp $text;
+    my $message = ($config->get('ombot/changenicks') ? $text : "Stranger: $text");
+    om_say($message);
 }
 
 # Let's go
