@@ -78,6 +78,7 @@ sub stream_by_id
 {
     my $id = shift;
     return $streams{$id} if defined $streams{$id};
+    return $streams{'om'} if $id eq 'ombot'; # I wish I wasn't so lazy...
     return 0; # No match
 }
 
@@ -95,7 +96,7 @@ sub irc_send
 # Send IRC intro
 sub send_intro
 {
-    foreach (qw/om you/)
+    foreach (qw/ombot you/)
     {
         irc_send($_, "NICK ".$config->get($_."/nick"));
         irc_send($_, "USER omegle * * :Omegle IRC Bot");
