@@ -1,0 +1,19 @@
+[ irc ]
+
+host = "irc.alphachat.net"
+port = 6667
+bind = "0.0.0.0"
+autojoin = ["#omegle", "#blah"]
+
+[ bot ]
+
+nick = "ombot"
+user = "omegle"
+gecos = "Omegle IRC Bot"
+
+# This will change later when we do modules
+[ settings ]
+trollsrc = "http://troll.invalid/output.txt"
+asl-low = 15
+asl-high = 25
+quitmessage = 0
