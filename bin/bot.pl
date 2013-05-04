@@ -13,6 +13,7 @@ BEGIN {
         "$Bin/../lib",
         "$Bin/../lib/evented-object",
         "$Bin/../lib/evented-configuration",
+        "$Bin/../lib/api-engine",
         "$Bin/../lib/net-async-omegle",
         "$Bin/../lib/libirc/lib"
     );
@@ -28,17 +29,19 @@ use URI;
 use EventedObject;
 use Evented::Configuration;
 use Net::Async::Omegle;
+use API;
 use IRC;
 use IRC::Async;
 
 my (
     $loop,              # IO::Async loop.
+    $api,               # API manager object.
     $irc,               # libirc object.
     $om,                # Net::Async::Omegle object.
     $http,              # Net::Async::HTTP object.
     $bot,               # bot EventedObject.
     $config_file,       # configuration file.
-    $config,            # Evented::Configuration object.
+    $config, $conf,     # Evented::Configuration object.
     %sessions,          # session objects stored by lc channel.
     @pending_sessions   # sessions pending for ->start().
 );
@@ -47,7 +50,7 @@ my (
 $config_file = $ARGV[0] || "$Bin/../etc/bot.conf";
 
 # Parse Evented::Configuration config file.
-$config = Evented::Configuration->new(conffile => $config_file);
+$config = $conf = Evented::Configuration->new(conffile => $config_file);
 $config->parse_config;
 sub conf { $config->get(@_) }
 
@@ -60,6 +63,16 @@ sub bot_init {
     # Create loop
     $loop = IO::Async::Loop->new;
     
+    # create the API manager object.
+    $api = API->new(
+        log_sub  => sub { say "[API] ".shift() },
+        mod_dir  => "$Bin/../modules",
+        base_dir => "$Bin/../lib/API/Base"
+    );
+    
+    # load configuration modules.
+    load_api_modules();
+
     # Create Net::Async::Omegle and Net::Async::HTTP objects.
     $om   = Net::Async::Omegle->new();
     $http = Net::Async::HTTP->new;
@@ -123,6 +136,12 @@ sub apply_omegle_handlers {
         { message                   => \&sess_message           }
     );
 }
+
+# load API modules from configuration.
+sub load_api_modules {
+    $api->load_module($_) foreach $conf->keys_of_block('modules');
+}
+
 
 # Attach events to IRC object.
 sub apply_irc_handlers {

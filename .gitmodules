@@ -10,3 +10,6 @@
 [submodule "lib/libirc"]
 	path = lib/libirc
 	url = git://github.com/cooper/libirc.git
+[submodule "lib/api-engine"]
+	path = lib/api-engine
+	url = git://github.com/cooper/api-engine.git
