@@ -24,6 +24,13 @@ sub init {
         callback    => \&cmd_setasl
     ) or return;
 
+    # register asl command.
+    $mod->register_command(
+        command     => 'asl',
+        description => 'sends a random age, sex, and location',
+        callback    => \&cmd_asl
+    ) or return;
+
     return 1;   
 }
 
@@ -67,6 +74,26 @@ sub cmd_setasl {
     $mod->{age_max} = $max;
     $channel->send_privmsg("Set ASL age range: $min to $max");
 
+}
+
+# asl command.
+sub cmd_asl {
+    my ($event, $user, $channel, $sess, @args) = @_;
+    my $sex = $args[0]; # supplied sex.
+    
+    # fetch possibly values.
+    my @ages  = (min..max);
+    my @sexes = ('m', 'f');
+    my @locs  = @{$mod->conf('locations') || ['ca', 'fl']};
+    
+    # choose random values.
+    my $age   =  $ages[ rand @ages  ];
+    my $loc   =  $locs[ rand @locs  ];
+       $sex ||= $sexes[ rand @sexes ];
+    
+    # send the message to the stranger.
+    $main::bot->om_say($channel, "$age $sex $loc");
+    
 }
 
 $mod

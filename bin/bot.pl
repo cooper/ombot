@@ -33,6 +33,8 @@ use API;
 use IRC;
 use IRC::Async;
 
+use Bot;
+
 our (
     $loop,              # IO::Async loop.
     $api,               # API manager object.
@@ -54,8 +56,8 @@ $config = $conf = Evented::Configuration->new(conffile => $config_file);
 $config->parse_config;
 sub conf { $config->get(@_) }
 
-# create bot EventedObject.
-$bot = EventedObject->new;
+# create bot object.
+$bot = Bot->new;
 
 # Initialization subroutine
 sub bot_init {
@@ -226,16 +228,9 @@ sub cmd_type {
 sub cmd_say {
     my ($event, $user, $channel, $sess, @args) = @_;
     
-    # check if a stranger is present.
-    if (!$sess || !$sess->connected) {
-        $channel->send_privmsg('No stranger is connected.');
-        return;
-    }
-    
     # send the message.
     my $message = join ' ', @args; # TODO: use the actual message substr'd.
-    $channel->send_privmsg("You: $message");
-    $sess->say($message);
+    om_say($channel, $message);
     
 }
 
