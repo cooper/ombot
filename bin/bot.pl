@@ -71,9 +71,6 @@ sub bot_init {
         mod_dir  => "$Bin/../modules",
         base_dir => "$Bin/../lib/API/Base"
     );
-    
-    # load configuration modules.
-    load_api_modules();
 
     # Create Net::Async::Omegle and Net::Async::HTTP objects.
     $om   = Net::Async::Omegle->new();
@@ -87,6 +84,9 @@ sub bot_init {
         user => conf('bot', 'user'),
         real => conf('bot', 'gecos')
     );
+    
+    # load configuration modules.
+    load_api_modules();
     
     # Add these objects to loop.
     $loop->add($om);
@@ -113,29 +113,14 @@ sub bot_init {
 # Attach events to bot object.
 sub apply_bot_events {
     my $bot = shift;
-    $bot->register_events(
-        { command_start             => \&cmd_start              },
-        { command_stop              => \&cmd_stop               },
-        { command_type              => \&cmd_type               },
-        { command_say               => \&cmd_say                },
-        { command_count             => \&cmd_count              }
-    );
-    # TODO: make methods for registering and storing commands.
 }
 
 # Attach events to Omegle object.
 sub apply_omegle_handlers {
     my $om = shift;
     $om->register_events(
-        { done                      => \&sess_done              },
-        { waiting                   => \&sess_waiting           },
-        { connected                 => \&sess_connected         },
         { common_interests          => \&sess_common_interests  },
-        { disconnected              => \&sess_disconnected      },
-        { question                  => \&sess_question          },
-        { typing                    => \&sess_typing            },
-        { stopped_typing            => \&sess_stopped_typing    },
-        { message                   => \&sess_message           }
+        { question                  => \&sess_question          }
     );
 }
 
@@ -175,82 +160,6 @@ sub apply_irc_handlers {
     
 }
 
-# create and start a new session.
-sub cmd_start {
-    my ($event, $user, $channel, $sess, @args) = @_;
-    
-    # check if a session already is running in this channel.
-    if ($sess && $sess->running) {
-        $channel->send_privmsg('There is already a session in progress.');
-        return;
-    }
-    
-    # create a new session.
-    $sess = $sessions{$channel} = $om->new;
-    $channel->{session} = $sess;
-    $sess->{channel}    = $channel;
-    
-    # if there are arguments, interests were provided.
-    if (scalar @args) {
-        $sess->{type}   = 'CommonInterests';
-        $sess->{topics} = \@args;
-    }
-
-    $sess->start;
-    $channel->send_privmsg("Starting conversation of type ".$sess->session_type);# XXX
-    
-}
-
-# stop a session.
-sub cmd_stop {
-    my ($event, $user, $channel, $sess, @args) = @_;
-    
-    # check if a session already is running in this channel.
-    if (!$sess || !$sess->running) {
-        $channel->send_privmsg('No session is currently running.');
-        return;
-    }
-    
-    # disconnect from Omegle.
-    $sess->disconnect;
-    $channel->send_privmsg('You have disconnected.');
-    
-}
-
-# send a typing event.
-sub cmd_type {
-    my ($event, $user, $channel, $sess, @args) = @_;
-    $sess->type;
-    $channel->send_privmsg('You are typing...');
-}
-
-# send a message.
-sub cmd_say {
-    my ($event, $user, $channel, $sess, @args) = @_;
-    
-    # send the message.
-    my $message = join ' ', @args; # TODO: use the actual message substr'd.
-    om_say($channel, $message);
-    
-}
-
-# display the user count.
-sub cmd_count {
-    my ($event, $user, $channel, $sess, @args) = @_;
-    $channel->send_privmsg('There are currently '.$om->user_count.' users online.');
-}
-
-# waiting on a chat partner.
-sub sess_waiting {
-    my ($event, $sess) = @_;
-    $sess->{channel}->send_privmsg('Looking for someone to chat with. Hang on!');
-}
-
-# found a partner.
-sub sess_connected {
-    my ($event, $sess) = @_;
-    $sess->{channel}->send_privmsg('You are now chatting with a random stranger. Say hi!');
-}
 
 # received common interests.
 sub sess_common_interests {
@@ -262,31 +171,6 @@ sub sess_common_interests {
 sub sess_question {
     my ($event, $sess, $question) = @_;
     $sess->{channel}->send_privmsg("Question: $question");
-}
-
-# stranger is typing.
-sub sess_typing {
-    my ($event, $sess) = @_;
-    $sess->{channel}->send_privmsg('Stranger is typing...');
-}
-
-# received a message.
-sub sess_message {
-    my ($event, $sess, $message) = @_;
-    $sess->{channel}->send_privmsg("Stranger: $message");
-}
-
-# stranger disconnected.
-sub sess_disconnected {
-    my ($event, $sess) = @_;
-    $sess->{channel}->send_privmsg('Your conversational partner has disconnected.');
-}
-
-# session ended.
-sub sess_done {
-    my ($event, $sess) = @_;
-    delete $sess->{channel}{session};
-    delete $sess->{channel};
 }
 
 bot_init();

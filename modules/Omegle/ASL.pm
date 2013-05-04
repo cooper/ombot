@@ -1,6 +1,6 @@
 # COPYRIGHT (c) 2013 JOAH
 # ASL module
-package API::Module::asl;
+package API::Module::Omegle::ASL;
 
 use warnings;
 use strict;
@@ -8,7 +8,7 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'asl',
+    name        => 'Omegle::ASL',
     version     => '1.0',
     description => 'generates random age, sex, and location',
     requires    => ['Config', 'Commands'],
