@@ -1,4 +1,4 @@
-# Copyright (c) 2013
+# COPYRIGHT (c) 2013 JOAH
 # ASL module
 package API::Module::asl;
 
