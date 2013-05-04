@@ -11,17 +11,11 @@ our $mod = API::Module->new(
     name        => 'Omegle::Basic',
     version     => '1.0',
     description => 'provides traditional Omegle chat functionality',
-    initialize  => \&init,
-    after_load  => \&loaded
+    initialize  => \&init
 );
 
 # initialize.
 sub init {
-    return 1;   
-}
-
-# module loaded.
-sub loaded {
 
     # load the OmegleEvents base submodule.
     $mod->load_submodule('EventsBase');
@@ -35,9 +29,8 @@ sub loaded {
     
     # load command submodule.
     $mod->load_submodule('Commands') or return;
-    
-    return 1;
-    
+
+    return 1;   
 }
 
 $mod
