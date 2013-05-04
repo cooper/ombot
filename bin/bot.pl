@@ -97,6 +97,7 @@ sub apply_omegle_handlers {
         { waiting                   => \&sess_waiting           },
         { connected                 => \&sess_connected         },
         { common_interests          => \&sess_common_interests  },
+        { disconnected              => \&sess_disconnected      },
         { question                  => \&sess_question          },
         { typing                    => \&sess_typing            },
         { stopped_typing            => \&sess_stopped_typing    },
@@ -178,6 +179,13 @@ sub cmd_stop {
     
 }
 
+# send a typing event.
+sub cmd_type {
+    my ($user, $channel, $sess, @args) = @_;
+    $sess->type;
+    $channel->send_privmsg('You are typing...');
+}
+
 # send a message.
 sub cmd_say {
     my ($user, $channel, $sess, @args) = @_;
@@ -193,6 +201,12 @@ sub cmd_say {
     $channel->send_privmsg("You: $message");
     $sess->say($message);
     
+}
+
+# display the user count.
+sub cmd_count {
+    my ($user, $channel, $sess, @args) = @_;
+    $channel->send_privmsg('There are currently '.$om->user_count.' users online.');
 }
 
 # waiting on a chat partner.
