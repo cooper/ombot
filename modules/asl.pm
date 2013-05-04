@@ -17,12 +17,6 @@ our $mod = API::Module->new(
 
 sub init {
 
-    # configuration/default values.
-    if (!defined $mod->{age_min}) {
-        $mod->{age_min} = defined $mod->conf('min') ? $mod->conf('min') : 16;
-        $mod->{age_max} = defined $mod->conf('max') ? $mod->conf('max') : 26;
-    }
-
     # register setasl command.
     $mod->register_command(
         command     => 'setasl',
@@ -33,6 +27,16 @@ sub init {
     return 1;   
 }
 
+sub min () {
+    defined $mod->{age_min}   ? $mod->{age_min}   :
+    defined $mod->conf('min') ? $mod->conf('min') : 16;
+}
+
+sub max () {
+    defined $mod->{age_max}   ? $mod->{age_max}   :
+    defined $mod->conf('max') ? $mod->conf('max') : 26;
+}
+
 # setasl command.
 sub cmd_setasl {
     my ($event, $user, $channel, $sess, @args) = @_;
@@ -41,7 +45,8 @@ sub cmd_setasl {
     
     # no args; display current values.
     if (!scalar @args) {
-        $channel->send_privmsg("Current ASL age range: $$mod{age_min} to $$mod{age_max}");
+        ($min, $max) = (min, max);
+        $channel->send_privmsg("Current ASL age range: $min to $max");
         return;
     }
     
