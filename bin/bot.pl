@@ -36,6 +36,7 @@ my (
     $irc,               # libirc object.
     $om,                # Net::Async::Omegle object.
     $http,              # Net::Async::HTTP object.
+    $bot,               # bot EventedObject.
     $config_file,       # configuration file.
     $config,            # Evented::Configuration object.
     %sessions,          # session objects stored by lc channel.
@@ -49,6 +50,9 @@ $config_file = $ARGV[0] || "$Bin/../etc/bot.conf";
 $config = Evented::Configuration->new(conffile => $config_file);
 $config->parse_config;
 sub conf { $config->get(@_) }
+
+# create bot EventedObject.
+$bot = EventedObject->new;
 
 # Initialization subroutine
 sub bot_init {
@@ -80,6 +84,7 @@ sub bot_init {
     # Attach events to Omegle and IRC objects.
     apply_omegle_handlers($om);
     apply_irc_handlers($irc);
+    apply_bot_events($bot);
 
     # Connect to IRC.
     $irc->connect(on_error => sub { die 'IRC connection error' });
@@ -87,6 +92,20 @@ sub bot_init {
     # Let's go
     $loop->run;
     
+}
+
+
+# Attach events to bot object.
+sub apply_bot_events {
+    my $bot = shift;
+    $bot->register_events(
+        { command_start             => \&cmd_start              },
+        { command_stop              => \&cmd_stop               },
+        { command_type              => \&cmd_type               },
+        { command_say               => \&cmd_say                },
+        { command_count             => \&cmd_count              }
+    );
+    # TODO: make methods for registering and storing commands.
 }
 
 # Attach events to Omegle object.
@@ -101,7 +120,7 @@ sub apply_omegle_handlers {
         { question                  => \&sess_question          },
         { typing                    => \&sess_typing            },
         { stopped_typing            => \&sess_stopped_typing    },
-        { message                   => \&sess_message           },
+        { message                   => \&sess_message           }
     );
 }
 
@@ -124,14 +143,12 @@ sub apply_irc_handlers {
         
         my $command = lc((split /\s/, $message)[0]);
         $command    =~ m/^\!(\w+)$/ or return; $command = $1;
+        my @args    = split /\s/, $message;
+        @args       = @args[1..$#args];
+        my $sess    = $sessions{$channel};
         
-        # fire command handler.
-        if (my $code = __PACKAGE__->can("cmd_$command")) {
-            my @args = split /\s/, $message;
-            @args    = @args[1..$#args];
-            my $sess = $sessions{$channel};
-            $code->($user, $channel, $sess, @args);
-        }
+        # fire command.
+        $bot->fire("command_$command" => $user, $channel, $sess, @args);
         
     });
     
@@ -139,7 +156,7 @@ sub apply_irc_handlers {
 
 # create and start a new session.
 sub cmd_start {
-    my ($user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, $sess, @args) = @_;
     
     # check if a session already is running in this channel.
     if ($sess && $sess->running) {
@@ -165,7 +182,7 @@ sub cmd_start {
 
 # stop a session.
 sub cmd_stop {
-    my ($user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, $sess, @args) = @_;
     
     # check if a session already is running in this channel.
     if (!$sess || !$sess->running) {
@@ -181,14 +198,14 @@ sub cmd_stop {
 
 # send a typing event.
 sub cmd_type {
-    my ($user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, $sess, @args) = @_;
     $sess->type;
     $channel->send_privmsg('You are typing...');
 }
 
 # send a message.
 sub cmd_say {
-    my ($user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, $sess, @args) = @_;
     
     # check if a stranger is present.
     if (!$sess || !$sess->connected) {
@@ -205,7 +222,7 @@ sub cmd_say {
 
 # display the user count.
 sub cmd_count {
-    my ($user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, $sess, @args) = @_;
     $channel->send_privmsg('There are currently '.$om->user_count.' users online.');
 }
 
