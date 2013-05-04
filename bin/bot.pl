@@ -33,7 +33,7 @@ use API;
 use IRC;
 use IRC::Async;
 
-my (
+our (
     $loop,              # IO::Async loop.
     $api,               # API manager object.
     $irc,               # libirc object.
