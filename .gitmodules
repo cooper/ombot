@@ -7,3 +7,6 @@
 [submodule "lib/net-async-omegle"]
 	path = lib/net-async-omegle
 	url = git://github.com/cooper/net-async-omegle.git
+[submodule "lib/libirc"]
+	path = lib/libirc
+	url = git://github.com/cooper/libirc.git
