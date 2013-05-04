@@ -3,3 +3,4 @@ etc/bot.conf
 *~
 *.old
 *.save
+modules/private_*

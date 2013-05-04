@@ -23,7 +23,7 @@ sub register_command {
     }
     
     # unique callback name.
-    my $cb_name = $mod->full_name.q(.command.).$opts{command};
+    my $cb_name = q(api.).$mod->full_name.q(.command.).$opts{command};
     
     # make sure this command hasn't been registered already.
     if ($cb_name ~~ @{$mod->{command_callbacks}}) {
@@ -33,7 +33,7 @@ sub register_command {
     
    
     # register the event.
-    $main::bot->register_event('command_'.$opts{command} => $opts{callback});
+    $main::bot->register_event('command_'.$opts{command} => $opts{callback}, name => $cb_name);
     push @{$mod->{command_callbacks}}, $cb_name;
     
     $main::api->log2("module $$mod{name} registered '$opts{command}' command");
