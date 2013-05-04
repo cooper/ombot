@@ -12,7 +12,6 @@ our $mod = API::Module->new(
     version     => '1.0',
     description => 'handles traditional Omegle events',
     requires    => ['OmegleEvents'],
-    depends     => ['Omegle::Basic'],
     initialize  => \&init
 );
 

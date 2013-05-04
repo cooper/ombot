@@ -12,7 +12,6 @@ our $mod = API::Module->new(
     version     => '1.0',
     description => 'provides an IRC interface to basic Omegle functionality',
     requires    => ['Commands'],
-    depends     => ['Omegle::Basic'],
     initialize  => \&init
 );
 

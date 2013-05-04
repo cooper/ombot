@@ -1,8 +1,18 @@
 # Copyright (c) 2013 Matthew Barkdale, Mitchell Cooper 
-package API::Base::OmegleEvents;
+# API::Module base for OmegleEvents
+package API::Module::Omegle::Basic::EventsBase;
 
 use warnings;
 use strict;
+
+use API::Module;
+
+our $mod = API::Module->new(
+    name        => 'EventsBase',
+    version     => '1.0',
+    description => 'API::Module base for registering Omegle event handlers',
+    initialize  => sub { 1 }
+);
 
 # registers an Omegle event.
 sub register_omegle_event {
@@ -44,4 +54,4 @@ sub _unload {
     return 1;
 }
 
-1
+$mod
