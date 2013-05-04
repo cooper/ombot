@@ -12,7 +12,7 @@ our $mod = API::Module->new(
     version     => '1.0',
     description => 'generates random age, sex, and location',
     requires    => ['Config', 'Commands'],
-    depends     => ['Omegle::Basic'],
+    depends     => ['Omegle'],
     initialize  => \&init
 );
 

@@ -12,7 +12,7 @@ our $mod = API::Module->new(
     version     => '1.0',
     description => 'allows you to meet strangers with interests similar to yours',
     requires    => ['OmegleEvents', 'Commands'],
-    depends     => ['Omegle::Basic'],
+    depends     => ['Omegle'],
     initialize  => \&init
 );
 

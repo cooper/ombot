@@ -33,7 +33,7 @@ sub init {
     $mod->load_submodule('EventsBase') or return;
 
     # register the OmegleEvents API::Module base.
-    my $events_base = $mod->{api}->get_module('Omegle.EventsBase') or return;
+    my $events_base = $mod->{api}->get_module('Omegle.EventsBase')  or return;
     $mod->{api}->register_base_module(OmegleEvents => $events_base) or return;
 
     return 1;
