@@ -25,10 +25,10 @@ sub init {
 sub loaded {
 
     # load Omegle event submodule.
-    $mod->load_submodule('OmegleEvents') or return;
+    $mod->load_submodule('Events') or return;
     
     # load command submodule.
-    $mod->load_submodule('OmegleCommands') or return;
+    $mod->load_submodule('Commands') or return;
     
     return 1;
     

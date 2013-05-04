@@ -1,6 +1,6 @@
 # Copyright (c) 2013 Matthew Barksdale, Mitchell Cooper
 # Basic Omegle events module
-package API::Module::Omegle::Basic::OmegleEvents;
+package API::Module::Omegle::Basic::Events;
 
 use warnings;
 use strict;
@@ -8,7 +8,7 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'Omegle::Basic::OmegleEvents',
+    name        => 'Events',
     version     => '1.0',
     description => 'handles traditional Omegle events',
     requires    => ['OmegleEvents'],
