@@ -22,20 +22,21 @@ sub register_command {
         return;
     }
     
+    $mod->{current_callback}  ||= 0;
+    $mod->{command_callbacks} ||= [];
+    
     # unique callback name.
-    my $cb_name = q(api.).$mod->full_name.q(.command.).$opts{command};
+    my $cb_name = q(api.).$mod->full_name.q(.command.).$opts{command}.q[(].$mod->{current_callback}++.q[)];
     
     # make sure this command hasn't been registered already.
     if ($cb_name ~~ @{$mod->{command_callbacks}}) {
         $main::api->log2("module $$mod{name} attempted to register command '$opts{command}' multiple times");
         return;
     }
-    
-    $mod->{command_callbacks} ||= [];
    
     # register the event.
     my $event_name = q(command_).$opts{command};
-    $main::bot->register_event($event_name => $opts{callback}, name => $cb_name);
+    $main::bot->register_event($event_name => $opts{callback}, name => $cb_name, %opts);
     push @{$mod->{command_callbacks}}, [$event_name, $cb_name];
     
     $main::api->log2("module $$mod{name} registered '$opts{command}' command");

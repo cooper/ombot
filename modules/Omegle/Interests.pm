@@ -33,4 +33,6 @@ sub sess_common_interests {
     $sess->{channel}->send_privmsg('You and the stranger both like '.join(', ', @interests).q(.));
 }
 
+# TODO: -interests
+
 $mod
