@@ -23,14 +23,8 @@ sub register_omegle_event {
     }
     
     # unique callback name.
-    my $cb_name = q(api.).$mod->full_name.q(.omegleEvent.).$opts{name};
-    
-    # make sure this event hasn't been registered already.
-    if ($cb_name ~~ @{$mod->{omegle_event_callbacks}}) {
-        $main::api->log2("module $$mod{name} attempted to register omegle event '$opts{name}' multiple times");
-        return;
-    }
-    
+    my $cb_name = $mod->unique_callback('omegleEvent', $opts{name});
+
     $mod->{omegle_event_callbacks} ||= [];
    
     # register the event.
