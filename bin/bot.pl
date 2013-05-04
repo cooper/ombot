@@ -118,10 +118,6 @@ sub apply_bot_events {
 # Attach events to Omegle object.
 sub apply_omegle_handlers {
     my $om = shift;
-    $om->register_events(
-        { common_interests          => \&sess_common_interests  },
-        { question                  => \&sess_question          }
-    );
 }
 
 # load API modules from configuration.
@@ -136,11 +132,6 @@ sub apply_irc_handlers {
     
     $irc->{autojoin} = conf('irc', 'autojoin');
 
-    # handle connect.
-    $irc->on(end_of_motd => sub {
-
-
-    });
     
     # handle PRIVMSG.
     $irc->on(privmsg => sub {
@@ -160,12 +151,6 @@ sub apply_irc_handlers {
     
 }
 
-
-# received common interests.
-sub sess_common_interests {
-    my ($event, $sess, @interests) = @_;
-    $sess->{channel}->send_privmsg('You and the stranger both like '.join(', ', @interests).q(.));
-}
 
 # received question.
 sub sess_question {
