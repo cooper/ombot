@@ -1,6 +1,6 @@
 # Copyright (c) 2013 Matthew Barksdale, Mitchell Cooper
 # Basic conversation module
-package API::Module::Omegle::CommonInterests;
+package API::Module::Omegle::Interests;
 
 use warnings;
 use strict;
@@ -8,7 +8,7 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'Omegle::CommonInterests',
+    name        => 'Omegle::Interests',
     version     => '1.0',
     description => 'allows you to meet strangers with interests similar to yours',
     requires    => ['OmegleEvents', 'Commands'],
