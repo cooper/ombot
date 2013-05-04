@@ -1,6 +1,6 @@
 # Copyright (c) 2013 Matthew Barkdale, Mitchell Cooper 
 # API::Module base for OmegleEvents
-package API::Module::Omegle::Basic::EventsBase;
+package API::Module::Omegle::EventsBase;
 
 use warnings;
 use strict;

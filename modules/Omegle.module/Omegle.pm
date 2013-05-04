@@ -30,7 +30,7 @@ sub init {
     $om->update;
 
     # load the OmegleEvents base submodule.
-    $mod->load_submodule('EventsBase');
+    $mod->load_submodule('EventsBase') or return;
 
     # register the OmegleEvents API::Module base.
     my $events_base = $mod->{api}->get_module('Omegle.EventsBase') or return;
@@ -42,7 +42,7 @@ sub init {
 # unload module.
 sub void {
 
-    $main::loop->remove($main::om);
+    $main::loop->remove($om);
     undef $main::om;
     undef $om;
 
