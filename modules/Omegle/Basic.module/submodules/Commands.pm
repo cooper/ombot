@@ -1,6 +1,6 @@
 # Copyright (c) 2013 Matthew Barksdale, Mitchell Cooper
 # Basic Omegle conversation commands module
-package API::Module::Omegle::Basic::OmegleCommands;
+package API::Module::Omegle::Basic::Commands;
 
 use warnings;
 use strict;
@@ -8,7 +8,7 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'Omegle::Basic::OmegleCommands',
+    name        => 'Commands',
     version     => '1.0',
     description => 'provides an IRC interface to basic Omegle functionality',
     requires    => ['Commands'],
