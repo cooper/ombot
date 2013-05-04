@@ -28,7 +28,6 @@ use URI;
 
 use EventedObject;
 use Evented::Configuration;
-use Net::Async::Omegle;
 use API;
 use IRC;
 use IRC::Async;
@@ -39,7 +38,6 @@ our (
     $loop,              # IO::Async loop.
     $api,               # API manager object.
     $irc,               # libirc object.
-    $om,                # Net::Async::Omegle object.
     $http,              # Net::Async::HTTP object.
     $bot,               # bot EventedObject.
     $config_file,       # configuration file.
@@ -72,8 +70,7 @@ sub bot_init {
         base_dir => "$Bin/../lib/API/Base"
     );
 
-    # Create Net::Async::Omegle and Net::Async::HTTP objects.
-    $om   = Net::Async::Omegle->new();
+    # Create Net::Async::HTTP object.
     $http = Net::Async::HTTP->new;
     
     # create libirc server object.
@@ -89,15 +86,10 @@ sub bot_init {
     load_api_modules();
     
     # Add these objects to loop.
-    $loop->add($om);
     $loop->add($irc);
     $loop->add($http);
 
-    # Request Omegle status information
-    $om->update();
-
-    # Attach events to Omegle and IRC objects.
-    apply_omegle_handlers($om);
+    # Attach events to objects.
     apply_irc_handlers($irc);
     apply_bot_events($bot);
 
@@ -113,11 +105,6 @@ sub bot_init {
 # Attach events to bot object.
 sub apply_bot_events {
     my $bot = shift;
-}
-
-# Attach events to Omegle object.
-sub apply_omegle_handlers {
-    my $om = shift;
 }
 
 # load API modules from configuration.

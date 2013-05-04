@@ -7,15 +7,27 @@ use strict;
 use utf8;
 use API::Module;
 
+use Net::Async::Omegle;
+
 our $mod = API::Module->new(
     name        => 'Omegle::Basic',
     version     => '1.0',
     description => 'provides traditional Omegle chat functionality',
-    initialize  => \&init
+    initialize  => \&init,
+    void        => \&void
 );
+
+our $om;
 
 # initialize.
 sub init {
+
+    # create Net::Async::Omegle object.
+    $om = $main::om = Net::Async::Omegle->new();
+    $main::loop->add($main::om);
+    
+    # fetch Omegle status information for the first time.
+    $om->update;
 
     # load the OmegleEvents base submodule.
     $mod->load_submodule('EventsBase');
@@ -31,6 +43,15 @@ sub init {
     $mod->load_submodule('Commands') or return;
 
     return 1;   
+}
+
+# unload module.
+sub void {
+
+    $main::loop->remove($main::om);
+    undef $main::om;
+    undef $om;
+
 }
 
 $mod
