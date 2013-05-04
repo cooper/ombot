@@ -11,11 +11,17 @@ our $mod = API::Module->new(
     name        => 'asl',
     version     => '1.0',
     description => 'generates random age, sex, and location',
-    requires    => ['Commands'],
+    requires    => ['Config', 'Commands'],
     initialize  => \&init
 );
 
 sub init {
+
+    # configuration/default values.
+    if (!defined $mod->{age_min}) {
+        $mod->{age_min} = defined $mod->conf('min') ? $mod->conf('min') : 16;
+        $mod->{age_max} = defined $mod->conf('max') ? $mod->conf('max') : 26;
+    }
 
     # register setasl command.
     $mod->register_command(
@@ -33,6 +39,12 @@ sub cmd_setasl {
     my $ages = join '', @args;
     my ($min, $max);
     
+    # no args; display current values.
+    if (!scalar @args) {
+        $channel->send_privmsg("Current ASL age range: $$mod{age_min} to $$mod{age_max}");
+        return;
+    }
+    
     # age range must be in this format.
     if ($ages =~ m/^(\d+)\D+(\d+)$/) {
         $min = $1;
@@ -44,8 +56,7 @@ sub cmd_setasl {
         $channel->send_privmsg('Invalid age range format.');
         return;
     }
-    
-    
+
     # format is valid.
     $mod->{age_min} = $min;
     $mod->{age_max} = $max;

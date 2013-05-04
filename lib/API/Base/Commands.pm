@@ -31,10 +31,12 @@ sub register_command {
         return;
     }
     
+    $mod->{command_callbacks} ||= [];
    
     # register the event.
-    $main::bot->register_event('command_'.$opts{command} => $opts{callback}, name => $cb_name);
-    push @{$mod->{command_callbacks}}, $cb_name;
+    my $event_name = q(command_).$opts{command};
+    $main::bot->register_event($event_name => $opts{callback}, name => $cb_name);
+    push @{$mod->{command_callbacks}}, [$event_name, $cb_name];
     
     $main::api->log2("module $$mod{name} registered '$opts{command}' command");
     return 1;
@@ -44,7 +46,8 @@ sub register_command {
 # unload command handlers.
 sub _unload {
     my ($class, $mod) = @_;
-    $main::bot->delete_event($_) foreach @{$mod->{command_callbacks}};
+    return 1 unless $mod->{command_callbacks};
+    $main::bot->delete_event(@$_) foreach @{$mod->{command_callbacks}};
     return 1;
 }
 
