@@ -90,7 +90,6 @@ sub bot_init {
 
     # Attach events to objects.
     apply_irc_handlers($irc);
-    apply_bot_events($bot);
 
     # Connect to IRC.
     $irc->connect(on_error => sub { die 'IRC connection error' });
@@ -98,12 +97,6 @@ sub bot_init {
     # Let's go
     $loop->run;
     
-}
-
-
-# Attach events to bot object.
-sub apply_bot_events {
-    my $bot = shift;
 }
 
 # load API modules from configuration.
@@ -134,13 +127,6 @@ sub apply_irc_handlers {
         
     });
     
-}
-
-
-# received question.
-sub sess_question {
-    my ($event, $sess, $question) = @_;
-    $sess->{channel}->send_privmsg("Question: $question");
 }
 
 bot_init();
