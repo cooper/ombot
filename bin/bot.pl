@@ -14,7 +14,6 @@ BEGIN {
         "$Bin/../lib/evented-object",
         "$Bin/../lib/evented-configuration",
         "$Bin/../lib/api-engine",
-        "$Bin/../lib/net-async-omegle",
         "$Bin/../lib/libirc/lib"
     );
 }
@@ -119,7 +118,6 @@ sub apply_irc_handlers {
     
     $irc->{autojoin} = conf('irc', 'autojoin');
 
-    
     # handle PRIVMSG.
     $irc->on(privmsg => sub {
         my ($event, $user, $channel, $message) = @_;
