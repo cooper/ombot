@@ -17,10 +17,6 @@ our $mod = API::Module->new(
 
 # command handlers.
 my %commands = (
-    start => {
-        description => 'start a new conversation',
-        callback    => \&cmd_start
-    },
     stop => {
         description => 'stops a running session',
         callback    => \&cmd_stop
@@ -46,6 +42,24 @@ sub init {
     foreach (keys %commands) {
         $mod->register_command(command => $_, %{$commands{$_}}) or return;
     }
+    
+    # register 100 priority start.
+    $mod->register_command(
+        command     => 'start',
+        priority    => 100,
+        callback    => \&cmd_start_100,
+        name        => 'omegle.command.100-start',
+        description => 'checks if a session is already running'
+    );
+    
+    # register -100 priority start.
+    $mod->register_command(
+        command     => 'start',
+        priority    => -100,
+        callback    => \&cmd_start_n100,
+        name        => 'omegle.command.-100-start',
+        description => 'starts an Omegle conversation'
+    );
 
     return 1;   
 }
@@ -55,29 +69,35 @@ sub init {
 ########################
 
 # create and start a new session.
-sub cmd_start {
+# this callback with 100 priority will be called before any extensions.
+sub cmd_start_100 {
     my ($event, $user, $channel, $sess, @args) = @_;
     
     # check if a session already is running in this channel.
     if ($sess && $sess->running) {
         $channel->send_privmsg('There is already a session in progress.');
+        $event->{stop} = 1; # terminate event.
         return;
     }
+    
+    # no session is running. continue to execute any additional handlers.
+    return 1;
+    
+}
+
+# create and start a new session.
+# this callback with -100 priority will be called after any extensions.
+sub cmd_start_n100 {
+    my ($event, $user, $channel, $sess, @args) = @_;
     
     # create a new session.
     $sess = $main::sessions{$channel} = $main::om->new;
     $channel->{session} = $sess;
     $sess->{channel}    = $channel;
-    
-    # if there are arguments, interests were provided.
-    if (scalar @args) {
-        $sess->{type}   = 'CommonInterests';
-        $sess->{topics} = \@args;
-    }
 
     $sess->start;
     $channel->send_privmsg("Starting conversation of type ".$sess->session_type);# XXX
-    
+
 }
 
 # stop a session.
@@ -87,6 +107,7 @@ sub cmd_stop {
     # check if a session already is running in this channel.
     if (!$sess || !$sess->running) {
         $channel->send_privmsg('No session is currently running.');
+        $event->{stop} = 1; # terminate event.
         return;
     }
     
