@@ -48,6 +48,18 @@ my %omegle_events = (
     server_message => {
         description => 'the server sent a message',
         callback    => \&sess_server_message
+    },
+    captcha_required => {
+        description => 'the server is requesting a captcha verification test',
+        callback    => \&sess_captcha_required
+    },
+    captcha => {
+        description => 'a captcha URL was received',
+        callback    => \&sess_captcha
+    },
+    bad_captcha => {
+        description => 'the server sent a message',
+        callback    => \&sess_bad_captcha
     }
 );
 
@@ -114,5 +126,24 @@ sub sess_done {
     delete $sess->{channel}{session};
     delete $sess->{channel};
 }
+
+# captcha requested.
+sub sess_captcha_required {
+    my ($event, $sess, $challenge) = @_;
+    $sess->{channel}->send_privmsg('The server is requiring human verification test...');
+}
+
+# captcha received.
+sub sess_captcha {
+    my ($event, $sess, $url) = @_;
+    $sess->{channel}->send_privmsg("Please verify your humanity: $url");
+}
+
+# captcha failed.
+sub sess_bad_captcha {
+    my ($event, $sess) = @_;
+    $sess->{channel}->send_privmsg('Your captcha submission was incorrect.');
+}
+
 
 $mod
