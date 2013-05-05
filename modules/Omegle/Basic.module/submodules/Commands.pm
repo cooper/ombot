@@ -32,6 +32,10 @@ my %commands = (
     count => {
         description => 'displays the online user count',
         callback    => \&cmd_count
+    },
+    captcha => {
+        description => 'submits a captcha response',
+        callback    => \&cmd_captcha
     }
 );
 
@@ -130,6 +134,19 @@ sub cmd_type {
     
     $sess->type;
     $channel->send_privmsg('You are typing...');
+}
+
+# submit a captcha response.
+sub cmd_captcha {
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
+    
+    # not connected.
+    $main::bot->om_running($channel) or return;
+    
+    $channel->send_privmsg('Verifying...');
+    $sess->submit_captcha(join ' ', @args);
+    
 }
 
 # send a message.

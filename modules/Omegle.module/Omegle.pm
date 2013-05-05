@@ -47,6 +47,7 @@ sub init {
     # copy Bot methods.
     *Bot::om_say       = *om_say;
     *Bot::om_connected = *om_connected;
+    *Bot::om_running   = *om_running;
 
     return 1;
 }
@@ -60,6 +61,7 @@ sub void {
     
     undef *Bot::om_say;
     undef *Bot::om_connected;
+    undef *Bot::om_running;
     
     return 1;
     
@@ -89,6 +91,21 @@ sub om_connected {
     
     # nope.
     $channel->send_privmsg('No stranger is connected.');
+    return;
+    
+}
+
+# check if a session is running.
+# if not, send an error and return false.
+sub om_running {
+    my ($bot, $channel) = @_;
+    my $sess = $channel->{preferred_session} || $channel->{sess};
+    
+    # yep.
+    return 1 if $sess && $sess->running;
+    
+    # nope.
+    $channel->send_privmsg('No session is currently running.');
     return;
     
 }
