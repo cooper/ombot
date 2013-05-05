@@ -44,6 +44,10 @@ my %omegle_events = (
     message => {
         description => 'a message was received from the stranger',
         callback    => \&sess_message
+    },
+    server_message => {
+        description => 'the server sent a message',
+        callback    => \&sess_server_message
     }
 );
 
@@ -62,6 +66,11 @@ sub init {
 ### OMEGLE EVENT HANDLERS ###
 #############################
 
+# server message.
+sub sess_server_message {
+    my ($event, $sess, $message) = @_;
+    $sess->{channel}->send_privmsg($message);
+}
 
 # waiting on a chat partner.
 sub sess_waiting {
