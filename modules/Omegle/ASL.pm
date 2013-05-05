@@ -47,7 +47,8 @@ sub max () {
 
 # setasl command.
 sub cmd_setasl {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
     my $ages = join '', @args;
     my ($min, $max);
     
@@ -79,7 +80,12 @@ sub cmd_setasl {
 
 # asl command.
 sub cmd_asl {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
+    
+    # not connected.
+    $main::bot->om_connected($channel) or return;
+    
     my $sex = $args[0]; # supplied sex.
     
     # fetch possibly values.

@@ -45,7 +45,8 @@ sub init {
     $events_base->register_base('OmegleEvents') or return;
 
     # copy Bot methods.
-    *Bot::om_say = *om_say;
+    *Bot::om_say       = *om_say;
+    *Bot::om_connected = *om_connected;
 
     return 1;
 }
@@ -56,7 +57,9 @@ sub void {
     $main::loop->remove($om);
     undef $main::om;
     undef $om;
+    
     undef *Bot::om_say;
+    undef *Bot::om_connected;
     
     return 1;
     
@@ -65,16 +68,28 @@ sub void {
 # send a message if connected.
 sub om_say {
     my ($bot, $channel, $message) = @_;
-    my $sess = $channel->{preferred_session} || $channel->{session};
+    my $sess = $channel->{preferred_session} || $channel->{sess};
     
-    # check if a stranger is present.
-    if (!$sess || !$sess->connected) {
-        $channel->send_privmsg('No stranger is connected.');
-        return;
-    }
+    # not connected.
+    $main::bot->om_connected($channel) or return;
     
     $channel->send_privmsg("You: $message");
     $sess->say($message);
+    
+}
+
+# check if a stranger is connected.
+# if not, send an error and return false.
+sub om_connected {
+    my ($bot, $channel) = @_;
+    my $sess = $channel->{preferred_session} || $channel->{sess};
+    
+    # yep.
+    return 1 if $sess && $sess->connected;
+    
+    # nope.
+    $channel->send_privmsg('No stranger is connected.');
+    return;
     
 }
 

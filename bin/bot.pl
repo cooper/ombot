@@ -40,9 +40,7 @@ our (
     $http,              # Net::Async::HTTP object.
     $bot,               # bot EventedObject.
     $config_file,       # configuration file.
-    $config, $conf,     # Evented::Configuration object.
-    %sessions,          # session objects stored by lc channel.
-    @pending_sessions   # sessions pending for ->start().
+    $config, $conf      # Evented::Configuration object.
 );
 
 # Config file? Default to bot.conf unless otherwise told
@@ -120,10 +118,9 @@ sub apply_irc_handlers {
         $command    =~ m/^\!(\w+)$/ or return; $command = $1;
         my @args    = split /\s/, $message;
         @args       = @args[1..$#args];
-        my $sess    = $sessions{$channel};
         
         # fire command.
-        $bot->fire("command_$command" => $user, $channel, $sess, @args);
+        $bot->fire("command_$command" => $user, $channel, @args);
         
     });
     

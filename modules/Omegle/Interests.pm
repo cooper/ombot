@@ -44,8 +44,8 @@ sub sess_common_interests {
 
 # start command handler.
 sub cmd_start_0 {
-    my ($event, $user, $channel, $sess, @args) = @_;
-    $sess = $event->{sess};
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $event->{sess};
     
     # we don't care about this.
     if (!defined $args[0] || lc $args[0] ne '-interests') {
@@ -69,7 +69,5 @@ sub cmd_start_0 {
     
     return 1;
 }
-
-# TODO: -interests
 
 $mod

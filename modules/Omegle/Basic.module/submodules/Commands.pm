@@ -71,7 +71,8 @@ sub init {
 # create and start a new session.
 # this callback with 100 priority will be called before any extensions.
 sub cmd_start_100 {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
     
     # check if a session already is running in this channel.
     if ($sess && $sess->running) {
@@ -89,12 +90,12 @@ sub cmd_start_100 {
 # create and start a new session.
 # this callback with -100 priority will be called after any extensions.
 sub cmd_start_n100 {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
     
     # create a new session if an earlier callback hasn't already.
-    $sess = $main::sessions{$channel} = $event->{sess} || $main::om->new;
-    $channel->{session} = $sess;
-    $sess->{channel}    = $channel;
+    my $sess = $event->{sess} || $main::om->new;
+    $channel->{sess} = $sess;
+    $sess->{channel} = $channel;
 
     $sess->start;
     $channel->send_privmsg("Starting conversation of type ".$sess->session_type);# XXX
@@ -103,7 +104,8 @@ sub cmd_start_n100 {
 
 # stop a session.
 sub cmd_stop {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
     
     # check if a session already is running in this channel.
     if (!$sess || !$sess->running) {
@@ -120,15 +122,23 @@ sub cmd_stop {
 
 # send a typing event.
 sub cmd_type {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
+    
+    # not connected.
+    $main::bot->om_connected($channel) or return;
+    
     $sess->type;
     $channel->send_privmsg('You are typing...');
 }
 
 # send a message.
 sub cmd_say {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
+    my $sess = $channel->{sess};
     
+    # connected check in om_say()
+
     # send the message.
     my $message = join ' ', @args; # TODO: use the actual message substr'd.
     $main::bot->om_say($channel, $message);
@@ -137,7 +147,7 @@ sub cmd_say {
 
 # display the user count.
 sub cmd_count {
-    my ($event, $user, $channel, $sess, @args) = @_;
+    my ($event, $user, $channel, @args) = @_;
     $channel->send_privmsg('There are currently '.$main::om->user_count.' users online.');
 }
 
