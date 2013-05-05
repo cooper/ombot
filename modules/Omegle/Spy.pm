@@ -16,14 +16,35 @@ our $mod = API::Module->new(
     initialize    => \&init
 );
 
-sub init {
-
-    # register question event.
-    $mod->register_omegle_event(
-        name        => 'question',
+my %omegle_events = (
+    question => {
         description => 'a question was asked or will be answered',
         callback    => \&sess_question
-    ) or return;
+    },
+    spy_typing => {
+        description => 'stranger is typing in spy mode',
+        callback    => \&sess_spy_typing
+    },
+    spy_stopped_typing => {
+        description => 'stranger stopped typing in spy mode',
+        callback    => \&sess_spy_stopped_typing
+    },
+    spy_message => {
+        description => 'stranger sent message in spy mode',
+        callback    => \&sess_spy_message
+    },
+    spy_disconnected => {
+        description => 'stranger disconnected in spy mode',
+        callback    => \&sess_spy_disconnected
+    }
+);
+
+sub init {
+
+    # register omegle events.
+    foreach (keys %omegle_events) {
+        $mod->register_omegle_event(name => $_, %{$omegle_events{$_}}) or return;
+    }
     
     # register handler 1 for start command.
     $mod->register_command(
@@ -41,6 +62,14 @@ sub init {
         description => 'handles question answering for Omegle'
     ) or return;
     
+    # register 100 priority handler for say command.
+    $mod->register_command(
+        command     => 'say',
+        priority    => 100, # before the builtin
+        callback    => \&cmd_say_100,
+        description => 'disables say command in Ask mode'
+    );
+    
     return 1;   
 }
 
@@ -50,7 +79,29 @@ sub sess_question {
     $sess->{channel}->send_privmsg("Question: $question");
 }
 
-# TODO: spy events.
+# spy stranger started typing.
+sub sess_spy_typing {
+    my ($event, $sess, $which) = @_;
+    $sess->{channel}->send_privmsg("Stranger $which is typing...");
+}
+
+# spy stranger stopped typing.
+sub sess_spy_stopped_typing {
+    my ($event, $sess, $which) = @_;
+    $sess->{channel}->send_privmsg("Stranger $which stopped typing.");
+}
+
+# spy stranger disconnected.
+sub sess_spy_disconnected {
+    my ($event, $sess, $which) = @_;
+    $sess->{channel}->send_privmsg("Stranger $which has disconnected.");
+}
+
+# spy stranger said something.
+sub sess_spy_message {
+    my ($event, $sess, $which, $message) = @_;
+    $sess->{channel}->send_privmsg("Stranger $which: $message");
+}
 
 # start command handler.
 sub cmd_start_0 {
@@ -94,6 +145,20 @@ sub cmd_start_1 {
     
     return 1;
     
+}
+
+# say command cancel.
+sub cmd_say_100 {
+    my ($event, $user, $channel, @args) = @_;
+    
+    # in ask mode, this command can't be used.
+    if ($channel->{sess} && $channel->{sess}->session_type eq 'AskQuestion') {
+        $channel->send_privmsg('You cannot speak while asking a question. You can only observe as two strangers discuss it.');
+        $event->{stop} = 1;
+        return;
+    }
+    
+    return 1;
 }
 
 $mod

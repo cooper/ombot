@@ -81,6 +81,12 @@ sub sess_typing {
     $sess->{channel}->send_privmsg('Stranger is typing...');
 }
 
+# stranger stopped typing.
+sub sess_stopped_typing {
+    my ($event, $sess) = @_;
+    $sess->{channel}->send_privmsg('Stranger stopped typing.');
+}
+
 # received a message.
 sub sess_message {
     my ($event, $sess, $message) = @_;
