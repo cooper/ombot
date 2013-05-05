@@ -8,11 +8,11 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'Omegle::Interests',
-    version     => '1.0',
-    description => 'allows you to meet strangers with interests similar to yours',
-    requires    => ['OmegleEvents', 'Commands'],
-    depends     => ['Omegle'],
+    name          => 'Omegle::Interests',
+    version       => '1.0',
+    description   => 'allows you to meet strangers with interests similar to yours',
+    depends_bases => ['OmegleEvents', 'Commands'],
+    depends_mods  => ['Omegle'],
     initialize  => \&init
 );
 

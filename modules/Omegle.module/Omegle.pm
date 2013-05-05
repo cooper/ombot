@@ -17,20 +17,18 @@ BEGIN {
 }
 
 our $mod = API::Module->new(
-    name        => 'Omegle',
-    version     => '1.0',
-    description => 'provides an interface for connecting to Omegle.com',
-    initialize  => \&init,
-    void        => \&void
+    name          => 'Omegle',
+    version       => '1.0',
+    description   => 'provides an interface for connecting to Omegle.com',
+    depends_perl  => ['Net::Async::Omegle'],
+    initialize    => \&init,
+    void          => \&void
 );
 
 our $om;
 
 # initialize.
 sub init {
-
-    # load Net::Async::Omegle.
-    $mod->require_perl('Net::Async::Omegle') or return;
 
     # create Net::Async::Omegle object.
     $om = $main::om = Net::Async::Omegle->new();
@@ -43,7 +41,7 @@ sub init {
     $mod->load_submodule('EventsBase') or return;
 
     # register the OmegleEvents API::Module base.
-    my $events_base = $mod->{api}->get_module('Omegle.EventsBase')  or return;
+    my $events_base = $mod->{api}->get_module('Omegle.EventsBase') or return;
     $events_base->register_base('OmegleEvents') or return;
 
     # copy Bot methods.

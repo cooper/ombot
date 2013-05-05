@@ -8,12 +8,12 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'Omegle::ASL',
-    version     => '1.0',
-    description => 'generates random age, sex, and location',
-    requires    => ['Config', 'Commands'],
-    depends     => ['Omegle'],
-    initialize  => \&init
+    name          => 'Omegle::ASL',
+    version       => '1.0',
+    description   => 'generates random age, sex, and location',
+    depends_bases => ['Config', 'Commands'],
+    depends_mods  => ['Omegle'],
+    initialize    => \&init
 );
 
 sub init {

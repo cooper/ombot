@@ -8,12 +8,12 @@ use utf8;
 use API::Module;
 
 our $mod = API::Module->new(
-    name        => 'Omegle::Spy',
-    version     => '1.0',
-    description => 'allows you to ask an answer questions on Omegle',
-    requires    => ['OmegleEvents', 'Commands'],
-    depends     => ['Omegle'],
-    initialize  => \&init
+    name          => 'Omegle::Spy',
+    version       => '1.0',
+    description   => 'allows you to ask an answer questions on Omegle',
+    depends_bases => ['OmegleEvents', 'Commands'],
+    depends_mods  => ['Omegle'],
+    initialize    => \&init
 );
 
 sub init {
