@@ -81,6 +81,7 @@ sub cmd_start_100 {
     }
     
     # no session is running. continue to execute any additional handlers.
+    $event->{sess} = $main::om->new;
     return 1;
     
 }
@@ -90,8 +91,8 @@ sub cmd_start_100 {
 sub cmd_start_n100 {
     my ($event, $user, $channel, $sess, @args) = @_;
     
-    # create a new session.
-    $sess = $main::sessions{$channel} = $main::om->new;
+    # create a new session if an earlier callback hasn't already.
+    $sess = $main::sessions{$channel} = $event->{sess} || $main::om->new;
     $channel->{session} = $sess;
     $sess->{channel}    = $channel;
 
