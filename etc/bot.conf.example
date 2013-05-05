@@ -1,0 +1,26 @@
+[ irc ]
+
+host = "irc.alphachat.net"
+port = 6667
+bind = "0.0.0.0"
+autojoin = ["#omegle", "#other"]
+
+[ bot ]
+
+nick = "ombot"
+user = "omegle"
+gecos = "Omegle IRC Bot"
+
+[ modules ]
+
+Omegle            = on
+Omegle::Basic     = on
+Omegle::Interests = on
+Omegle::Spy       = on
+Omegle::ASL       = on
+
+[ module: asl ]
+
+min = 17
+max = 25
+locations = [qw(ca fl ohio canada georgia indiana uk england)]
