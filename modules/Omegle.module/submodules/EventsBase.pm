@@ -17,18 +17,19 @@ our $mod = API::Module->new(
 # registers an Omegle event.
 sub register_omegle_event {
     my ($mod, %opts) = @_;
-
+    my $name = $mod->full_name;
+    
     # make sure all required options are present.
     foreach my $what (qw|name description callback|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $main::api->log2("module $$mod{name} didn't provide '$what' option for register_omegle_event()");
+        $main::api->log2("module $name didn't provide '$what' option for register_omegle_event()");
         return;
     }
     
     # make sure callback is code.
     if (ref $opts{callback} ne 'CODE') {
-        $main::api->log2("module $$mod{name} didn't supply CODE for register_omegle_event()");
+        $main::api->log2("module $name didn't supply CODE for register_omegle_event()");
         return;
     }
     
@@ -41,7 +42,7 @@ sub register_omegle_event {
     $main::om->register_event($opts{name} => $opts{callback}, name => $cb_name);
     push @{$mod->{omegle_event_callbacks}}, [$opts{name}, $cb_name];
     
-    $main::api->log2("module $$mod{name} registered '$opts{name}' omegle event");
+    $main::api->log2("module $name registered '$opts{name}' omegle event");
     return 1;
     
 }

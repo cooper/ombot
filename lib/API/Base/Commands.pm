@@ -7,18 +7,19 @@ use strict;
 # registers a command.
 sub register_command {
     my ($mod, %opts) = @_;
-
+    my $name = $mod->full_name;
+    
     # make sure all required options are present.
     foreach my $what (qw|command description callback|) {
         next if exists $opts{$what};
         $opts{command} ||= 'unknown';
-        $main::api->log2("module $$mod{name} didn't provide '$what' option for register_command()");
+        $main::api->log2("module $name didn't provide '$what' option for register_command()");
         return;
     }
     
     # make sure callback is code.
     if (ref $opts{callback} ne 'CODE') {
-        $main::api->log2("module $$mod{name} didn't supply CODE for register_command()");
+        $main::api->log2("module $name didn't supply CODE for register_command()");
         return;
     }
     
@@ -32,7 +33,7 @@ sub register_command {
     $main::bot->register_event($event_name => $opts{callback}, name => $cb_name, %opts);
     push @{$mod->{command_callbacks}}, [$event_name, $cb_name];
     
-    $main::api->log2("module $$mod{name} registered '$opts{command}' command");
+    $main::api->log2("module $name registered '$opts{command}' command");
     return 1;
     
 }
