@@ -19,23 +19,28 @@ our $mod = API::Module->new(
 my %commands = (
     stop => {
         description => 'stops a running session',
-        callback    => \&cmd_stop
+        callback    => \&cmd_stop,
+        name        => 'omegle.command.0-stop'
     },
     type => {
         description => 'sends a typing event',
-        callback    => \&cmd_type
+        callback    => \&cmd_type,
+        name        => 'omegle.command.0-type'
     },
     say => {
         description => 'sends a message',
-        callback    => \&cmd_say
+        callback    => \&cmd_say,
+        name        => 'omegle.command.0-say'
     },
     count => {
         description => 'displays the online user count',
-        callback    => \&cmd_count
+        callback    => \&cmd_count,
+        name        => 'omegle.command.0-count'
     },
     captcha => {
         description => 'submits a captcha response',
-        callback    => \&cmd_captcha
+        callback    => \&cmd_captcha,
+        name        => 'omegle.command.0-captcha'
     }
 );
 
@@ -81,8 +86,7 @@ sub cmd_start_100 {
     # check if a session already is running in this channel.
     if ($sess && $sess->running) {
         $channel->send_privmsg('There is already a session in progress.');
-        $event->{stop} = 1; # terminate event.
-        return;
+        return $event->stop;
     }
     
     # no session is running. continue to execute any additional handlers.
@@ -102,7 +106,7 @@ sub cmd_start_n100 {
     $sess->{channel} = $channel;
 
     $sess->start;
-    $channel->send_privmsg("Starting conversation of type ".$sess->session_type);# XXX
+    $channel->send_privmsg('Starting conversation of type '.$sess->session_type);# XXX
 
 }
 
@@ -114,7 +118,7 @@ sub cmd_stop {
     # check if a session already is running in this channel.
     if (!$sess || !$sess->running) {
         $channel->send_privmsg('No session is currently running.');
-        $event->{stop} = 1; # terminate event.
+        $event->stop;
         return;
     }
     

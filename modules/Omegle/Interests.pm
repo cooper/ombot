@@ -48,20 +48,19 @@ sub cmd_start_0 {
     my $sess = $event->{sess};
     
     # we don't care about this.
-    if (!defined $args[0] || lc $args[0] ne '-interests') {
+    if (!defined $args[0] or lc $args[0] ne '-interests' && lc $args[0] ne '-interest') {
         return 1;
     }
     
     # if no interests are provided.
     if (scalar @args < 2) {
         $channel->send_privmsg('You must supply one or more interests, separated by commas.');
-        $event->{stop} = 1;
+        $event->cancel('omegle.command.-100-start');
         return;
     }
     
     # separate by commands.
     my @interests = map { s/^(\s*)//; s/(\s*)$//; $_ } split(',', join(' ', @args[1..$#args]));
-    print "interests: @interests\n";
     
     # set session type and interests.
     $sess->{type}   = 'CommonInterests';

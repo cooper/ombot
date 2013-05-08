@@ -116,8 +116,7 @@ sub cmd_start_0 {
     # no question?
     if (scalar @args < 2) {
         $channel->send_privmsg('Please provide a question.');
-        $event->{stop} = 1;
-        return;
+        return $event->cancel_callback('omegle.command.-100-start');
     }
     
     # FIXME: use original message.
@@ -154,8 +153,7 @@ sub cmd_say_100 {
     # in ask mode, this command can't be used.
     if ($channel->{sess} && $channel->{sess}->session_type eq 'AskQuestion') {
         $channel->send_privmsg('You cannot speak while asking a question. You can only observe as two strangers discuss it.');
-        $event->{stop} = 1;
-        return;
+        return $event->cancel('omegle.command.0-say');
     }
     
     return 1;
