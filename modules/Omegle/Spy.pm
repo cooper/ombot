@@ -109,7 +109,7 @@ sub cmd_start_0 {
     my $sess = $event->{sess};
     
     # we don't care about this.
-    if (!defined $args[0] || lc $args[0] ne '-ask') {
+    if (!defined $args[0] or lc $args[0] ne '-ask' && lc $args[0] ne '-question') {
         return 1;
     }
 
