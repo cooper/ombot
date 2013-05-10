@@ -9,7 +9,7 @@ use API::Module;
 
 our $mod = API::Module->new(
     name        => 'Events',
-    version     => '1.0',
+    version     => '1.1',
     description => 'handles traditional Omegle events',
     requires    => ['OmegleEvents'],
     initialize  => \&init
@@ -60,6 +60,10 @@ my %omegle_events = (
     bad_captcha => {
         description => 'the server sent a message',
         callback    => \&sess_bad_captcha
+    },
+    error => {
+        description => 'the server sent an error message',
+        callback    => \&sess_error
     }
 );
 
@@ -145,5 +149,10 @@ sub sess_bad_captcha {
     $sess->{channel}->send_privmsg('Your captcha submission was incorrect.');
 }
 
+# server session error.
+sub sess_error {
+    my ($event, $sess, $message) = @_;
+    $sess->{channel}->send_privmsg("Error: $message");
+}
 
 $mod
