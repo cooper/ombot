@@ -9,7 +9,7 @@ use API::Module;
 
 our $mod = API::Module->new(
     name        => 'Commands',
-    version     => '1.0',
+    version     => '1.1',
     description => 'provides an IRC interface to basic Omegle functionality',
     requires    => ['Commands'],
     initialize  => \&init
@@ -147,6 +147,12 @@ sub cmd_captcha {
     
     # not connected.
     $main::bot->om_running($channel) or return;
+    
+    # server is not waiting for a captcha response.
+    if (!$sess->waiting_for_captcha) {
+        $channel->send_privmsg('No captcha requires submission.');
+        return;
+    }
     
     $channel->send_privmsg('Verifying...');
     $sess->submit_captcha(join ' ', @args);
