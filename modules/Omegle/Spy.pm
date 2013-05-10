@@ -116,7 +116,7 @@ sub cmd_start_0 {
     # no question?
     if (scalar @args < 2) {
         $channel->send_privmsg('Please provide a question.');
-        return $event->cancel_callback('omegle.command.-100-start');
+        return $event->cancel('omegle.command.-100-start');
     }
     
     # FIXME: use original message.
