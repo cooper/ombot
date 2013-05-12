@@ -80,8 +80,6 @@ sub bot_init {
         sasl_user => conf('irc', 'sasl_user'),
         sasl_pass => conf('irc', 'sasl_pass')
     );
-    $irc->on('raw' => sub { shift; say "IRC: ".shift; });
-    $irc->on('send' => sub { shift; say "Me: ".shift; });
     # load configuration modules.
     load_api_modules();
     
