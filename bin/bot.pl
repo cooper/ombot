@@ -76,9 +76,12 @@ sub bot_init {
         port => conf('irc', 'port'), # TODO: bind address.
         nick => conf('bot', 'nick'),
         user => conf('bot', 'user'),
-        real => conf('bot', 'gecos')
+        real => conf('bot', 'gecos'),
+        sasl_user => conf('irc', 'sasl_user'),
+        sasl_pass => conf('irc', 'sasl_pass')
     );
-    
+    $irc->on('raw' => sub { shift; say "IRC: ".shift; });
+    $irc->on('send' => sub { shift; say "Me: ".shift; });
     # load configuration modules.
     load_api_modules();
     

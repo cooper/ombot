@@ -4,6 +4,9 @@ host = "irc.alphachat.net"
 port = 6667
 bind = "0.0.0.0"
 autojoin = ["#omegle", "#other"]
+# Uncomment the next two lines for sasl support (requires MIME::Base64)
+# sasl_user = "blah"
+# sasl_password = "blahhh"
 
 [ bot ]
 
