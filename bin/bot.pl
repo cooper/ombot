@@ -69,7 +69,7 @@ sub bot_init {
 
     # Create Net::Async::HTTP object.
     $http = Net::Async::HTTP->new;
-    
+
     # create libirc server object.
     $irc = IRC::Async->new(
         host => conf('irc', 'host'),

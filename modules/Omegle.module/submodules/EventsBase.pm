@@ -39,7 +39,7 @@ sub register_omegle_event {
     $mod->{omegle_event_callbacks} ||= [];
    
     # register the event.
-    $main::om->register_event($opts{name} => $opts{callback}, name => $cb_name);
+    $main::om->register_event($opts{name} => $opts{callback}, %opts, name => $cb_name);
     push @{$mod->{omegle_event_callbacks}}, [$opts{name}, $cb_name];
     
     $main::api->log2("module $name registered '$opts{name}' omegle event");
