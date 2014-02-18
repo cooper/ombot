@@ -3,7 +3,7 @@ package Bot;
 
 use warnings;
 use strict;
-use parent 'EventedObject';
+use parent 'Evented::Object';
 
 # create a new bot instance.
 sub new {

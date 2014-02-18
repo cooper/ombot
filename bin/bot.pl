@@ -11,7 +11,7 @@ BEGIN {
     use FindBin qw($Bin);
     unshift(@INC,
         "$Bin/../lib",
-        "$Bin/../lib/eventedobject",
+        "$Bin/../lib/evented-object",
         "$Bin/../lib/evented-configuration",
         "$Bin/../lib/api-engine",
         "$Bin/../lib/libirc/lib"
@@ -25,7 +25,7 @@ use IO::Async::Stream;
 use Net::Async::HTTP;
 use URI;
 
-use EventedObject;
+use Evented::Object;
 use Evented::Configuration;
 use API;
 use IRC;
@@ -38,7 +38,7 @@ our (
     $api,               # API manager object.
     $irc,               # libirc object.
     $http,              # Net::Async::HTTP object.
-    $bot,               # bot EventedObject.
+    $bot,               # bot Evented::Object.
     $config_file,       # configuration file.
     $config, $conf      # Evented::Configuration object.
 );
