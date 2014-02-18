@@ -48,7 +48,7 @@ $config_file = $ARGV[0] || "$Bin/../etc/bot.conf";
 
 # Parse Evented::Configuration config file.
 $config = $conf = Evented::Configuration->new(conffile => $config_file);
-$config->parse_config;
+$config->parse_config or die;
 sub conf { $config->get(@_) }
 
 # create bot object.
@@ -80,6 +80,7 @@ sub bot_init {
         sasl_user => conf('irc', 'sasl_user'),
         sasl_pass => conf('irc', 'sasl_pass')
     );
+    
     # load configuration modules.
     load_api_modules();
     
