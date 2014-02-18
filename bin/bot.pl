@@ -11,10 +11,10 @@ BEGIN {
     use FindBin qw($Bin);
     unshift(@INC,
         "$Bin/../lib",
-        "$Bin/../lib/evented-object",
-        "$Bin/../lib/evented-configuration",
-        "$Bin/../lib/api-engine",
-        "$Bin/../lib/libirc/lib"
+        "$Bin/../lib/evented-object/lib",
+        "$Bin/../lib/evented-configuration/lib",
+        "$Bin/../lib/libirc/lib",
+        "$Bin/../lib/api-engine"
     );
 }
 
