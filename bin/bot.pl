@@ -28,8 +28,8 @@ use URI;
 use Evented::Object;
 use Evented::Configuration;
 use API;
-use IRC;
-use IRC::Async;
+use Evented::IRC;
+use Evented::IRC::Async;
 
 use Bot;
 
@@ -71,7 +71,7 @@ sub bot_init {
     $http = Net::Async::HTTP->new;
 
     # create libirc server object.
-    $irc = IRC::Async->new(
+    $irc = Evented::IRC::Async->new(
         host => conf('irc', 'host'),
         port => conf('irc', 'port'), # TODO: bind address.
         nick => conf('bot', 'nick'),
