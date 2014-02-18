@@ -114,10 +114,10 @@ sub apply_irc_handlers {
     # handle PRIVMSG.
     $irc->on(privmsg => sub {
         my ($event, $user, $channel, $message) = @_;
-        return unless $channel->isa('IRC::Channel'); # ignore PMs.
+        return unless $channel->isa('Evented::IRC::Channel'); # ignore PMs.
         return if !defined $message || !length $message;
         
-        my $command = lc((split /\s/, $message)[0]);
+        my $command = lc((split /\s/, $message, 2)[0]);
         $command    =~ m/^\!(\w+)$/ or return; $command = $1;
         my @args    = split /\s/, $message;
         @args       = @args[1..$#args];
