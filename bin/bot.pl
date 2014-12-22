@@ -117,8 +117,9 @@ sub apply_irc_handlers {
         return unless $channel->isa('Evented::IRC::Channel'); # ignore PMs.
         return if !defined $message || !length $message;
         
+        my $prefix  = $conf->get('bot', 'prefix') || '.';
         my $command = lc((split /\s/, $message, 2)[0]);
-        $command    =~ m/^\!(\w+)$/ or return; $command = $1;
+        $command    =~ m/^\Q$prefix\E(\w+)$/ or return; $command = $1;
         my @args    = split /\s/, $message;
         @args       = @args[1..$#args];
         
