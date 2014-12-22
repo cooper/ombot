@@ -196,7 +196,7 @@ sub cmd_status {
     );
     while (@info) {
         my ($key, $val) = splice @info, 0, 2;
-        $channel->send_privmsg(sprintf "\2%s\2: %s", $key, $value);
+        $channel->send_privmsg(sprintf "\2%s\2: %s", $key, $val);
     }
 }
 
