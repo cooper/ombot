@@ -191,8 +191,8 @@ sub cmd_status {
     my @info = (
         'Servers online'    => $servers,
         'Current server'    => $om->last_server,
-        'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'no',
-        'Users online'      => $om->user_count
+        'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'none',
+        'Users online'      => ($om->user_count)[0]
     );
     while (@info) {
         my ($key, $val) = splice @info, 0, 2;
