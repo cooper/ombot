@@ -48,7 +48,7 @@ sub cmd_start_0 {
     my $sess = $event->{sess};
     
     # we don't care about this.
-    if (!defined $args[0] or lc $args[0] ne '-interests' && lc $args[0] ne '-interest') {
+    if (!defined $args[0] or $args[0] !~ m/^[\-]*interest+s?$/i) {
         return 1;
     }
     

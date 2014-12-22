@@ -37,6 +37,11 @@ my %commands = (
         callback    => \&cmd_count,
         name        => 'omegle.command.0-count'
     },
+    status => {
+        description => 'displays current Omegle status',
+        callback    => \&cmd_status,
+        name        => 'omegle.command.0-status'
+    },
     captcha => {
         description => 'submits a captcha response',
         callback    => \&cmd_captcha,
@@ -177,5 +182,23 @@ sub cmd_count {
     my ($event, $user, $channel, @args) = @_;
     $channel->send_privmsg('There are currently '.$main::om->user_count.' users online.');
 }
+
+# display current status.
+sub cmd_status {
+    my ($event, $user, $channel, @args) = @_;
+    my $om = $main::om;
+    my $servers = join ', ', map /^(.*?)\..*$/, $om->servers;
+    my @info = (
+        'Servers online'    => $servers,
+        'Current server'    => $om->last_server,
+        'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'no',
+        'Users online'      => $om->user_count
+    );
+    while (@info) {
+        my ($key, $val) = splice @info, 0, 2;
+        $channel->send_privmsg(sprintf "\2%s\2: %s", $key, $value);
+    }
+}
+
 
 $mod
