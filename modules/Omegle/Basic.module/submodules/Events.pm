@@ -115,7 +115,7 @@ sub sess_stopped_typing {
 # received a message.
 sub sess_message {
     my ($event, $sess, $message) = @_;
-    my $str = ::get_format(om_msg_stranger => { message => $message };
+    my $str = ::get_format(om_msg_stranger => { message => $message });
     $sess->{channel}->send_privmsg($str);
 }
 
