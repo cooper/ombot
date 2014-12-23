@@ -75,7 +75,8 @@ sub om_say {
     # not connected.
     $main::bot->om_connected($channel) or return;
     
-    $channel->send_privmsg("You: $message");
+    my $str = ::get_format(om_msg_you => { message => $message };
+    $channel->send_privmsg($str);
     $sess->say($message);
     
 }
