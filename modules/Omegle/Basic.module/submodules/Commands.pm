@@ -198,7 +198,7 @@ sub cmd_status {
         my ($key, $val) = splice @info, 0, 2;
         my $str = ::get_format(om_status_pair => {
             key   => $key,
-            value => $value
+            value => $val
         });
         $channel->send_privmsg($str);
     }
