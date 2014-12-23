@@ -4,16 +4,17 @@ host = "irc.alphachat.net"
 port = 6667
 bind = "0.0.0.0"
 autojoin = ["#omegle", "#other"]
+
 # Uncomment the next two lines for sasl support (requires MIME::Base64)
 # sasl_user = "blah"
 # sasl_password = "blahhh"
 
 [ bot ]
 
-nick = "ombot"
-user = "omegle"
-gecos = "Omegle IRC Bot"
-prefix = '.'
+nick    = "ombot"
+user    = "omegle"
+gecos   = "Omegle IRC Bot"
+prefix  = '.'
 
 [ modules ]
 
@@ -28,3 +29,7 @@ Omegle::ASL       = on
 min = 17
 max = 25
 locations = [qw(ca fl ohio canada georgia seattle russia uk england)]
+
+[ format ]
+
+om_status_pair  = "\2<<key>>\2: <<value>>"

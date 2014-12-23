@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use feature qw(say switch);
+use 5.010;
 
 BEGIN {
     our $Bin;
@@ -104,6 +104,19 @@ sub load_api_modules {
     $api->load_module($_) foreach $conf->keys_of_block('modules');
 }
 
+sub get_format {
+    my ($name, $info) = @_;
+
+    # no format.
+    return '' if not defined $name;
+    $name = lc $name;
+    
+    my $line = $conf->get('format', $name);
+    $line =~ s/<<\s*(\w+)\s*>>/$$info{$1}/g;
+    $line =~ s/^\s+|\s+$//g;
+    
+    return $line;
+}
 
 # Attach events to IRC object.
 sub apply_irc_handlers {
