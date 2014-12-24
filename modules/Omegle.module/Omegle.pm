@@ -112,6 +112,9 @@ sub om_running {
 }
 
 our ($default_wpm, $wpm) = 60; # TODO: configurable.
+our $wpm_delay = 0;
+
+sub wpm () { $wpm // $default_wpm }
 
 sub wpm2delay {
     my ($wpm, $msg) = @_;
@@ -123,7 +126,7 @@ sub wpm2delay {
 
 sub get_wpm_delay {
     my $msg = shift;
-    return wpm2delay($wpm // $default_wpm, $msg);
+    return $wpm_delay += wpm2delay(wpm, $msg);
 }
 
 $mod

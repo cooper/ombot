@@ -181,7 +181,8 @@ sub cmd_say {
     # send the message after typing delay.
     my $timer = IO::Async::Timer::Countdown->new(
         delay     => $delay,
-        on_expire => sub { 
+        on_expire => sub {
+            $API::Module::Omegle::wpm_delay -= $delay;
             $sess->connected or return;
             $main::bot->om_say($channel, $message);
         }
@@ -206,7 +207,7 @@ sub cmd_status {
         'Servers online'    => $servers,
         'Current server'    => $om->last_server,
         'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'none',
-        'Words per minute'  => $API::Module::Omegle::wpm || 'disabled',
+        'Words per minute'  => API::Module::Omegle::wpm() || 'disabled',
         'Users online'      => ($om->user_count)[0]
     );
     while (@info) {
