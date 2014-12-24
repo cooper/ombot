@@ -6,6 +6,7 @@ use warnings;
 use strict;
 use utf8;
 use API::Module;
+use IO::Async::Timer::Countdown;
 
 our $mod = API::Module->new(
     name        => 'Commands',
@@ -49,6 +50,7 @@ my %commands = (
     }
 );
 
+our ($default_wpm, $wpm) = 60;
 
 sub init {
 
@@ -169,12 +171,24 @@ sub cmd_say {
     my ($event, $user, $channel, @args) = @_;
     my $sess = $channel->{sess};
     
+    # determine the typing delay.
+    # TODO: use the actual message substr'd.
     # connected check in om_say()
-
-    # send the message.
-    my $message = join ' ', @args; # TODO: use the actual message substr'd.
-    $main::bot->om_say($channel, $message);
+    my $message = join ' ', @args;
+    my $delay   = API::Module::Omegle::get_wpm_delay($message);
+    cmd_type($event, $user, $channel) if $delay;
     
+    # send the message after typing delay.
+    my $timer = IO::Async::Timer::Countdown->new(
+        delay     => $delay,
+        on_expire => sub { 
+            $sess->connected or return;
+            $main::bot->om_say($channel, $message);
+        }
+    );
+    
+    $::loop->add($timer);
+    $timer->start;
 }
 
 # display the user count.
@@ -192,6 +206,7 @@ sub cmd_status {
         'Servers online'    => $servers,
         'Current server'    => $om->last_server,
         'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'none',
+        'Words per minute'  => $API::Module::Omegle::wpm || 'disabled',
         'Users online'      => ($om->user_count)[0]
     );
     while (@info) {
