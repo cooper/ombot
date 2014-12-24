@@ -126,7 +126,7 @@ sub wpm2delay {
 
 sub get_wpm_delay {
     my $msg = shift;
-    return $wpm_delay += wpm2delay(wpm, $msg);
+    return wpm2delay(wpm, $msg);
 }
 
 $mod

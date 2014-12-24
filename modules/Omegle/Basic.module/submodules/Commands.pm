@@ -176,11 +176,12 @@ sub cmd_say {
     # connected check in om_say()
     my $message = join ' ', @args;
     my $delay   = API::Module::Omegle::get_wpm_delay($message);
+    $API::Module::Omegle::wpm_delay += $delay;
     cmd_type($event, $user, $channel) if $delay;
     
     # send the message after typing delay.
     my $timer = IO::Async::Timer::Countdown->new(
-        delay     => $delay,
+        delay     => $API::Module::Omegle::wpm_delay,
         on_expire => sub {
             $API::Module::Omegle::wpm_delay -= $delay;
             $sess->connected or return;
