@@ -174,17 +174,19 @@ sub cmd_say {
     # determine the typing delay.
     # TODO: use the actual message substr'd.
     # connected check in om_say()
+    my $delay_all = \$API::Module::Omegle::wpm_delay;
     my $message = join ' ', @args;
     my $delay   = API::Module::Omegle::get_wpm_delay($message);
-    $API::Module::Omegle::wpm_delay += $delay;
+    $$delay_all += $delay;
     cmd_type($event, $user, $channel) if $delay;
     
     # send the message after typing delay.
     my $timer = IO::Async::Timer::Countdown->new(
-        delay     => $API::Module::Omegle::wpm_delay,
+        delay     => $$delay_all,
         on_expire => sub {
-            $API::Module::Omegle::wpm_delay -= $delay;
+            $$delay_all -= $delay;
             $sess->connected or return;
+            cmd_type($event, $user, $channel) if $delay && $$delay_all;
             $main::bot->om_say($channel, $message);
         }
     );
