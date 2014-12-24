@@ -7,6 +7,7 @@ use strict;
 use utf8;
 use API::Module;
 use IO::Async::Timer::Countdown;
+use Scalar::Util 'looks_like_number';
 
 our $mod = API::Module->new(
     name        => 'Commands',
@@ -47,6 +48,11 @@ my %commands = (
         description => 'submits a captcha response',
         callback    => \&cmd_captcha,
         name        => 'omegle.command.0-captcha'
+    },
+    setwpm => {
+        description => 'set fake typing speed',
+        callback    => \&cmd_setwpm,
+        name        => 'omegle.command.0-setwpm'
     }
 );
 
@@ -213,7 +219,6 @@ sub cmd_status {
         'Servers online'    => $servers,
         'Current server'    => $om->last_server,
         'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'none',
-        'Words per minute'  => API::Module::Omegle::wpm() || 'disabled',
         'Users online'      => ($om->user_count)[0]
     );
     while (@info) {
@@ -224,6 +229,29 @@ sub cmd_status {
         });
         $channel->send_privmsg($str);
     }
+}
+
+sub cmd_setwpm {
+    my ($event, $user, $channel, $set_wpm) = @_;
+    my $wpm = \$API::Module::Omegle::wpm;
+    
+    # setting.
+    if (defined $set_wpm) {
+        if (!looks_like_number($set_wpm)) {
+            $channel->send_privmsg('WPM must be numeric.');
+            return;
+        }
+        $$wpm = $set_wpm;
+        return $channel->send_privmsg('Fake typing disabled.') if !$set_wpm;
+        return $channel->send_privmsg("Typing speed: $set_wpm wpm");
+    }
+    
+    my $real_wpm = API::Module::Omegle::wpm();
+    $channel->send_privmsg(
+        $real_wpm                       ?
+        "Typing speed: $real_wpm wpm"   :
+        'Fake typing is not enabled.'
+    );
 }
 
 
