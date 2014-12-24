@@ -100,7 +100,8 @@ sub sess_spy_disconnected {
 # spy stranger said something.
 sub sess_spy_message {
     my ($event, $sess, $which, $message) = @_;
-    $sess->{channel}->send_privmsg("Stranger $which: $message");
+    my $str = ::get_format("om_msg_spy$which" => { message => $message });
+    $sess->{channel}->send_privmsg($msg);
 }
 
 # start command handler.
