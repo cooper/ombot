@@ -131,9 +131,9 @@ sub apply_irc_handlers {
         return if !defined $message || !length $message;
         
         my $prefix  = $conf->get('bot', 'prefix') || '.';
-        my $command = lc((split /\s/, $message, 2)[0]);
+        my $command = lc((split /\s+/, $message, 2)[0]);
         $command    =~ m/^\Q$prefix\E(\w+)$/ or return; $command = $1;
-        my @args    = split /\s/, $message;
+        my @args    = split /\s+/, $message;
         @args       = @args[1..$#args];
         
         # fire command.

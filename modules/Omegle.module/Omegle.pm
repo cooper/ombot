@@ -8,7 +8,7 @@ use utf8;
 use API::Module;
 
 BEGIN {
-    my $dir = "$main::Bin/../lib/net-async-omegle";
+    my $dir = "$::Bin/../lib/net-async-omegle";
     
     # add Net::Async::Omegle submodule directory if needed.
     if (!($dir ~~ @INC)) {
@@ -31,12 +31,10 @@ our $om;
 sub init {
 
     # create Net::Async::Omegle object.
-    $om = $main::om = Net::Async::Omegle->new();
-    $main::loop->add($main::om);
+    $om = $::om = Net::Async::Omegle->new();
+    $::loop->add($::om);
+    $::om->init;
     
-    # fetch Omegle status information for the first time.
-    $om->update;
-
     # load the OmegleEvents base submodule.
     $mod->load_submodule('EventsBase') or return;
 
@@ -55,8 +53,8 @@ sub init {
 # unload module.
 sub void {
 
-    $main::loop->remove($om);
-    undef $main::om;
+    $::loop->remove($om);
+    undef $::om;
     undef $om;
     
     undef *Bot::om_say;
@@ -73,7 +71,7 @@ sub om_say {
     my $sess = $channel->{preferred_session} || $channel->{sess};
     
     # not connected.
-    $main::bot->om_connected($channel) or return;
+    $::bot->om_connected($channel) or return;
     
     my $str = ::get_format(om_msg_you => { message => $message });
     $channel->send_privmsg($str);
