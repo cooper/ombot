@@ -184,9 +184,14 @@ sub cmd_say {
     my $timer = IO::Async::Timer::Countdown->new(
         delay     => $$delay_all,
         on_expire => sub {
+            my $connected = $sess->connected;
+            
+            # upcoming messages -- type again.
+            cmd_type($event, $user, $channel)
+                if $delay && $$delay_all && $connected;
+                
             $$delay_all -= $delay;
-            $sess->connected or return;
-            cmd_type($event, $user, $channel) if $delay && $$delay_all;
+            $connected or return;
             $main::bot->om_say($channel, $message);
         }
     );
