@@ -76,7 +76,8 @@ sub init {
 # received question.
 sub sess_question {
     my ($event, $sess, $question) = @_;
-    $sess->{channel}->send_privmsg("Question: $question");
+    my $str = ::get_format(om_question => { question => $question });
+    $sess->{channel}->send_privmsg($str);
 }
 
 # spy stranger started typing.
@@ -100,7 +101,7 @@ sub sess_spy_disconnected {
 # spy stranger said something.
 sub sess_spy_message {
     my ($event, $sess, $which, $message) = @_;
-    my $str = ::get_format("om_msg_spy$which" => { message => $message });
+    my $msg = ::get_format("om_msg_spy$which" => { message => $message });
     $sess->{channel}->send_privmsg($msg);
 }
 

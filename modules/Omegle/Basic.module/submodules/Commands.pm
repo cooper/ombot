@@ -113,8 +113,6 @@ sub cmd_start_n100 {
     $sess->{channel} = $channel;
 
     $sess->start;
-    $channel->send_privmsg('Starting conversation of type '.$sess->session_type);# XXX
-
 }
 
 # stop a session.
