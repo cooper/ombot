@@ -33,8 +33,8 @@ locations = [qw(ca fl ohio canada georgia seattle russia uk england)]
 [ format ]
 
 om_status_pair  = "\2<<key>>\2: <<value>>"
-om_msg_stranger = "\2\0034Stranger:\x0f <<message>>"
+om_msg_stranger = "\2\00304Stranger:\x0f <<message>>"
 om_msg_you      = "\2\00312You:\x0f <<message>>"
-om_msg_spy1     = "\2\0034Stranger \003131:\x0f <<message>>"
-om_msg_spy2     = "\2\0034Stranger \00332:\x0f <<message>>"
+om_msg_spy1     = "\2\00312Stranger 1:\x0f <<message>>"
+om_msg_spy2     = "\2\00304Stranger 2:\x0f <<message>>"
 om_question     = "\2Question:\2 <<question>>"
