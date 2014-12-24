@@ -143,7 +143,7 @@ sub cmd_type {
     # not connected.
     $main::bot->om_connected($channel) or return;
     
-    $sess->type;
+    $sess->type or return;
     $channel->send_privmsg('You are typing...');
 }
 

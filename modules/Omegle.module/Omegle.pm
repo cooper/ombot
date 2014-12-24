@@ -111,7 +111,7 @@ sub om_running {
     
 }
 
-our ($default_wpm, $wpm) = 60; # TODO: configurable.
+our ($default_wpm, $wpm) = 100; # TODO: configurable.
 our $wpm_delay = 0;
 
 sub wpm () { $wpm // $default_wpm }
