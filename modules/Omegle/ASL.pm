@@ -35,15 +35,9 @@ sub init {
     return 1;   
 }
 
-sub min () {
-    defined $mod->{age_min}   ? $mod->{age_min}   :
-    defined $mod->conf('min') ? $mod->conf('min') : 16;
-}
-
-sub max () {
-    defined $mod->{age_max}   ? $mod->{age_max}   :
-    defined $mod->conf('max') ? $mod->conf('max') : 26;
-}
+sub conf   { $::conf->get('asl', @_)              }
+sub min () { $mod->{age_min} // conf('min') // 16 }
+sub max () { $mod->{age_max} // conf('max') // 26 }
 
 # setasl command.
 sub cmd_setasl {
@@ -67,7 +61,7 @@ sub cmd_setasl {
     
     # format is invalid.
     else {
-        $channel->send_privmsg('Invalid age range format.');
+        $channel->send_privmsg('Invalid age range format. Must be n-n.');
         return;
     }
 
@@ -91,7 +85,7 @@ sub cmd_asl {
     # fetch possibly values.
     my @ages  = (min..max);
     my @sexes = ('m', 'f');
-    my @locs  = @{$mod->conf('locations') || ['ca', 'fl']};
+    my @locs  = @{ conf('locations') || ['ca', 'fl'] };
     
     # choose random values.
     my $age   =  $ages[ rand @ages  ];
@@ -99,7 +93,7 @@ sub cmd_asl {
        $sex ||= $sexes[ rand @sexes ];
     
     # send the message to the stranger.
-    $main::bot->om_say($channel, "$age $sex $loc");
+    $::bot->om_say($channel, "$age $sex $loc");
     
 }
 

@@ -24,7 +24,7 @@ Omegle::Interests = on
 Omegle::Spy       = on
 Omegle::ASL       = on
 
-[ module: asl ]
+[ asl ]
 
 min = 17
 max = 25

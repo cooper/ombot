@@ -175,6 +175,9 @@ sub cmd_say {
     my ($event, $user, $channel, @args) = @_;
     my $sess = $channel->{sess};
     
+    # not connected.
+    $main::bot->om_running($channel) or return;
+    
     # determine the typing delay.
     # TODO: use the actual message substr'd.
     # connected check in om_say()
