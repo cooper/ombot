@@ -48,7 +48,7 @@ sub cmd_setasl {
 
     # no args; display current values.
     if (!scalar @args) {
-        ($min, $max) = (min, max);
+        ($min, $max) = (asl_min, asl_max);
         $channel->send_privmsg("Current ASL age range: $min to $max");
         return;
     }
@@ -83,7 +83,7 @@ sub cmd_asl {
     my $sex = $args[0]; # supplied sex.
 
     # fetch possibly values.
-    my @ages  = (min..max);
+    my @ages  = (asl_min .. asl_max);
     my @sexes = ('m', 'f');
     my @locs  = @{ conf('locations') || ['ca', 'fl'] };
 

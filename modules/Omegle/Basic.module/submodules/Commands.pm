@@ -7,7 +7,6 @@ use strict;
 use utf8;
 use API::Module;
 use IO::Async::Timer::Countdown;
-use Scalar::Util 'looks_like_number';
 
 our $mod = API::Module->new(
     name        => 'Commands',
