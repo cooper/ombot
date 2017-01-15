@@ -189,13 +189,15 @@ sub cmd_status {
     my $om = $::om;
     my $servers = join ', ', map /^(.*?)\..*$/, $om->servers;
     my @info = (
-        'Servers online'    => $servers,
+        'Online'            => $om->{fired_ready} ? 'Yes' : 'No',
+        'Servers available' => $servers,
         'Current server'    => $om->last_server,
-        'Ban status'        => $om->half_banned ? 'Forced unmonitored' : 'none',
-        'Users online'      => ($om->user_count)[0]
+        'Ban status'        => $om->half_banned ? 'Forced unmonitored' : undef,
+        'Users online'      => $om->user_count || undef
     );
     while (@info) {
         my ($key, $val) = splice @info, 0, 2;
+        next unless length $val;
         my $str = ::get_format(om_status_pair => {
             key   => $key,
             value => $val
