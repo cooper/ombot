@@ -78,7 +78,7 @@ sub cmd_asl {
     my $sess = $channel->{sess};
 
     # not connected.
-    $main::bot->om_connected($channel) or return;
+    $::bot->om_connected($channel) or return;
 
     my $sex = $args[0]; # supplied sex.
 

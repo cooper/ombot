@@ -100,7 +100,7 @@ sub cmd_start_100 {
     }
 
     # no session is running. continue to execute any additional handlers.
-    $event->{sess} = $main::om->new;
+    $event->{sess} = $::om->new;
     return 1;
 
 }
@@ -111,7 +111,7 @@ sub cmd_start_n100 {
     my ($event, $user, $channel, @args) = @_;
 
     # create a new session if an earlier callback hasn't already.
-    my $sess = $event->{sess} || $main::om->new;
+    my $sess = $event->{sess} || $::om->new;
     $channel->{sess} = $sess;
     $sess->{channel} = $channel;
 
@@ -142,9 +142,9 @@ sub cmd_type {
     my $sess = $channel->{sess};
 
     # not connected.
-    $main::bot->om_connected($channel) or return;
+    $::bot->om_connected($channel) or return;
 
-    $main::bot->om_type($channel);
+    $::bot->om_type($channel);
 }
 
 # submit a captcha response.
@@ -153,7 +153,7 @@ sub cmd_captcha {
     my $sess = $channel->{sess};
 
     # not connected.
-    $main::bot->om_running($channel) or return;
+    $::bot->om_running($channel) or return;
 
     # server is not waiting for a captcha response.
     if (!$sess->waiting_for_captcha) {
@@ -174,19 +174,19 @@ sub cmd_say {
     # TODO: use the actual message substr'd.
     my $message = join ' ', @args;
 
-    $main::bot->om_say($channel, $message);
+    $::bot->om_say($channel, $message);
 }
 
 # display the user count.
 sub cmd_count {
     my ($event, $user, $channel, @args) = @_;
-    $channel->send_privmsg('There are currently '.$main::om->user_count.' users online.');
+    $channel->send_privmsg('There are currently '.$::om->user_count.' users online.');
 }
 
 # display current status.
 sub cmd_status {
     my ($event, $user, $channel, @args) = @_;
-    my $om = $main::om;
+    my $om = $::om;
     my $servers = join ', ', map /^(.*?)\..*$/, $om->servers;
     my @info = (
         'Servers online'    => $servers,

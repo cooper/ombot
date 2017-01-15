@@ -23,13 +23,13 @@ sub register_omegle_event {
     foreach my $what (qw|name description callback|) {
         next if exists $opts{$what};
         $opts{name} ||= 'unknown';
-        $main::api->log2("module $name didn't provide '$what' option for register_omegle_event()");
+        $::api->log2("module $name didn't provide '$what' option for register_omegle_event()");
         return;
     }
     
     # make sure callback is code.
     if (ref $opts{callback} ne 'CODE') {
-        $main::api->log2("module $name didn't supply CODE for register_omegle_event()");
+        $::api->log2("module $name didn't supply CODE for register_omegle_event()");
         return;
     }
     
@@ -39,10 +39,10 @@ sub register_omegle_event {
     $mod->{omegle_event_callbacks} ||= [];
    
     # register the event.
-    $main::om->register_event($opts{name} => $opts{callback}, %opts, name => $cb_name);
+    $::om->register_event($opts{name} => $opts{callback}, %opts, name => $cb_name);
     push @{$mod->{omegle_event_callbacks}}, [$opts{name}, $cb_name];
     
-    $main::api->log2("module $name registered '$opts{name}' omegle event");
+    $::api->log2("module $name registered '$opts{name}' omegle event");
     return 1;
     
 }
@@ -51,7 +51,7 @@ sub register_omegle_event {
 sub _unload {
     my ($class, $mod) = @_;
     return 1 unless $mod->{omegle_event_callbacks};
-    $main::om->delete_event(@$_) foreach @{$mod->{omegle_event_callbacks}};
+    $::om->delete_event(@$_) foreach @{$mod->{omegle_event_callbacks}};
     return 1;
 }
 
