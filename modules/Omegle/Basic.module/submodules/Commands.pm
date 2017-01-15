@@ -55,8 +55,6 @@ my %commands = (
     }
 );
 
-our ($default_wpm, $wpm) = 60;
-
 sub init {
 
     # register commands.
@@ -146,8 +144,7 @@ sub cmd_type {
     # not connected.
     $main::bot->om_connected($channel) or return;
 
-    $sess->type or return;
-    $channel->send_privmsg('You are typing...');
+    $main::bot->om_type($channel);
 }
 
 # submit a captcha response.
@@ -174,36 +171,10 @@ sub cmd_say {
     my ($event, $user, $channel, @args) = @_;
     my $sess = $channel->{sess};
 
-    # not connected.
-    $main::bot->om_running($channel) or return;
-
-    # determine the typing delay.
     # TODO: use the actual message substr'd.
-    # connected check in om_say()
-    my $delay_all = \$API::Module::Omegle::wpm_delay;
     my $message = join ' ', @args;
-    my $delay   = API::Module::Omegle::get_wpm_delay($message);
-    $$delay_all += $delay;
-    cmd_type($event, $user, $channel) if $delay;
 
-    # send the message after typing delay.
-    my $timer = IO::Async::Timer::Countdown->new(
-        delay     => $$delay_all,
-        on_expire => sub {
-            my $connected = $sess->connected;
-
-            # upcoming messages -- type again.
-            cmd_type($event, $user, $channel)
-                if $delay && $$delay_all && $connected;
-
-            $$delay_all -= $delay;
-            $connected or return;
-            $main::bot->om_say($channel, $message);
-        }
-    );
-
-    $::loop->add($timer);
-    $timer->start;
+    $main::bot->om_say($channel, $message);
 }
 
 # display the user count.
@@ -245,7 +216,7 @@ sub cmd_setwpm {
         }
         $$wpm = $set_wpm;
         return $channel->send_privmsg('Fake typing disabled.') if !$set_wpm;
-        return $channel->send_privmsg("Typing speed: $set_wpm wpm");
+        return $channel->send_privmsg("Set typing speed: $set_wpm wpm");
     }
 
     my $real_wpm = API::Module::Omegle::wpm();

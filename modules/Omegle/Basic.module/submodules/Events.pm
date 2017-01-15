@@ -45,6 +45,10 @@ my %omegle_events = (
         description => 'a message was received from the stranger',
         callback    => \&sess_message
     },
+    you_message => {
+        description => 'your message was delivered',
+        callback    => \&sess_you_message
+    },
     server_message => {
         description => 'the server sent a message',
         callback    => \&sess_server_message
@@ -75,7 +79,7 @@ sub init {
         $mod->register_omegle_event(name => $_, %{$omegle_events{$_}}) or return;
     }
 
-    return 1;   
+    return 1;
 }
 
 #############################
@@ -116,6 +120,12 @@ sub sess_stopped_typing {
 sub sess_message {
     my ($event, $sess, $message) = @_;
     my $str = ::get_format(om_msg_stranger => { message => $message });
+    $sess->{channel}->send_privmsg($str);
+}
+
+sub sess_you_message {
+    my ($event, $sess, $message, $id) = @_;
+    my $str = ::get_format(om_msg_you => { message => $message });
     $sess->{channel}->send_privmsg($str);
 }
 

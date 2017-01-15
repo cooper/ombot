@@ -9,7 +9,7 @@ use API::Module;
 
 BEGIN {
     my $dir = "$::Bin/../lib/net-async-omegle";
-    
+
     # add Net::Async::Omegle submodule directory if needed.
     if (!($dir ~~ @INC)) {
         unshift @INC, $dir;
@@ -26,6 +26,8 @@ our $mod = API::Module->new(
 );
 
 our $om;
+our ($default_wpm, $wpm) = 100; # TODO: configurable.
+our $wpm_delay = 0;
 
 # initialize.
 sub init {
@@ -34,7 +36,7 @@ sub init {
     $om = $::om = Net::Async::Omegle->new();
     $::loop->add($::om);
     $::om->init;
-    
+
     # load the OmegleEvents base submodule.
     $mod->load_submodule('EventsBase') or return;
 
@@ -44,6 +46,7 @@ sub init {
 
     # copy Bot methods.
     *Bot::om_say       = *om_say;
+    *Bot::om_type      = *om_type;
     *Bot::om_connected = *om_connected;
     *Bot::om_running   = *om_running;
 
@@ -56,27 +59,62 @@ sub void {
     $::loop->remove($om);
     undef $::om;
     undef $om;
-    
+
     undef *Bot::om_say;
+    undef *Bot::om_type;
     undef *Bot::om_connected;
     undef *Bot::om_running;
-    
+
     return 1;
-    
+
 }
 
 # send a message if connected.
 sub om_say {
     my ($bot, $channel, $message) = @_;
     my $sess = $channel->{preferred_session} || $channel->{sess};
-    
+
     # not connected.
-    $::bot->om_connected($channel) or return;
-    
-    my $str = ::get_format(om_msg_you => { message => $message });
-    $channel->send_privmsg($str);
-    $sess->say($message);
-    
+    $bot->om_connected($channel) or return;
+
+    # increase delay
+    my $delay_all = \$wpm_delay;
+    my $delay     = get_wpm_delay($message);
+    $$delay_all  += $delay;
+
+    # start typing
+    $bot->om_type($channel) if $delay;
+
+    # send the message after typing delay.
+    my $timer = IO::Async::Timer::Countdown->new(
+        delay     => $$delay_all,
+        on_expire => sub {
+            my $connected = $sess->connected;
+
+            # upcoming messages -- type again.
+            $bot->om_type($channel)
+                if $delay && $$delay_all && $connected;
+
+            $$delay_all -= $delay;
+            $connected or return;
+
+            $sess->say($message);
+        }
+    );
+
+    $::loop->add($timer);
+    $timer->start;
+}
+
+sub om_type {
+    my ($bot, $channel) = @_;
+    my $sess = $channel->{preferred_session} || $channel->{sess};
+
+    # not connected.
+    $bot->om_connected($channel) or return;
+
+    $sess->type or return;
+    $channel->send_privmsg('You are typing...');
 }
 
 # check if a stranger is connected.
@@ -84,14 +122,14 @@ sub om_say {
 sub om_connected {
     my ($bot, $channel) = @_;
     my $sess = $channel->{preferred_session} || $channel->{sess};
-    
+
     # yep.
     return 1 if $sess && $sess->connected;
-    
+
     # nope.
     $channel->send_privmsg('No stranger is connected.');
     return;
-    
+
 }
 
 # check if a session is running.
@@ -99,18 +137,15 @@ sub om_connected {
 sub om_running {
     my ($bot, $channel) = @_;
     my $sess = $channel->{preferred_session} || $channel->{sess};
-    
+
     # yep.
     return 1 if $sess && $sess->running;
-    
+
     # nope.
     $channel->send_privmsg('No session is currently running.');
     return;
-    
-}
 
-our ($default_wpm, $wpm) = 100; # TODO: configurable.
-our $wpm_delay = 0;
+}
 
 sub wpm () { $wpm // $default_wpm }
 

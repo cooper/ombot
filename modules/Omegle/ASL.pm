@@ -43,7 +43,7 @@ sub asl_max () { $mod->{age_max} // conf('max') // 26 }
 sub cmd_setasl {
     my ($event, $user, $channel, @args) = @_;
     my $sess = $channel->{sess};
-    my $ages = join '', @args;
+    my $ages = join ' ', @args;
     my ($min, $max);
 
     # no args; display current values.
